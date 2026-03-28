@@ -1,0 +1,347 @@
+.page {
+  padding-top: var(--space-5);
+  padding-bottom: var(--space-7);
+  max-width: 680px;
+}
+
+/* ── Hero ─────────────────────────────────────────────────── */
+.hero { margin-bottom: var(--space-5); }
+
+.title {
+  font-size: clamp(26px, 6vw, 42px);
+  margin-bottom: var(--space-3);
+}
+
+.subtitle {
+  font-size: 16px;
+  color: var(--fog);
+  line-height: 1.65;
+}
+
+/* ── Input section ────────────────────────────────────────── */
+.inputSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+/* ── Drop zone ────────────────────────────────────────────── */
+.dropZone {
+  background: white;
+  border: 1.5px solid var(--mist);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+  position: relative;
+}
+
+.dropZoneDragging {
+  border-color: var(--sage-safe);
+  background: rgba(91,154,139,0.04);
+}
+
+.dropZoneHasFile {
+  border-color: var(--fog);
+}
+
+/* Drop hint (shown when empty) */
+.dropHint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--fog);
+  font-size: 13px;
+  pointer-events: none;
+  padding: var(--space-1) 0;
+}
+
+.dropIcon {
+  font-size: 16px;
+}
+
+/* Textarea */
+.textarea {
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  font-size: 16px;
+  color: var(--midnight);
+  resize: none;
+  outline: none;
+  min-height: 140px;
+  background: transparent !important;
+}
+
+.textarea::placeholder {
+  color: var(--fog);
+}
+
+/* File chip */
+.fileChip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--mist);
+  border-radius: var(--radius-md);
+  flex-wrap: nowrap;
+}
+
+.fileChipIcon {
+  font-size: 20px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.fileChipInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fileChipName {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--midnight);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fileChipSize {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fog);
+}
+
+.fileRemove {
+  flex-shrink: 0;
+  padding: 4px 10px !important;
+}
+
+/* ── Toolbar ──────────────────────────────────────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.uploadBtn {
+  flex-shrink: 0;
+}
+
+.uploadHint {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fog);
+}
+
+/* ── Anon Preview ─────────────────────────────────────────── */
+.anonBox {
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(91,154,139,0.2);
+  background: linear-gradient(135deg, rgba(91,154,139,0.04), rgba(61,139,139,0.02));
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.anonImpossible {
+  border-color: rgba(193,68,51,0.2);
+  background: rgba(193,68,51,0.03);
+}
+
+.anonHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.anonBadge {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sage-safe);
+  background: rgba(91,154,139,0.12);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+.anonNote {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fog);
+}
+
+.anonLoading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 13px;
+  color: var(--fog);
+}
+
+.anonText {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--deep-sea);
+  line-height: 1.7;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.anonImpossibleText {
+  font-size: 14px;
+  color: var(--danger-deep);
+  line-height: 1.6;
+}
+
+/* ── Analyze button ───────────────────────────────────────── */
+.analyzeBtn {
+  font-size: 16px;
+  padding: 16px;
+  letter-spacing: 0.01em;
+}
+
+/* ── Error ────────────────────────────────────────────────── */
+.error {
+  padding: var(--space-3) var(--space-4);
+  background: rgba(193,68,51,0.07);
+  border: 1px solid rgba(193,68,51,0.2);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--danger-deep);
+  line-height: 1.55;
+}
+
+/* ── Examples ─────────────────────────────────────────────── */
+.examplesSection { margin-bottom: var(--space-5); }
+
+.examplePills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.examplePill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px var(--space-3);
+  border: 1.5px solid var(--mist);
+  border-radius: var(--radius-pill);
+  background: white;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+}
+
+.examplePill:hover {
+  border-color: var(--midnight);
+  transform: translateY(-1px);
+}
+
+.pillLabel { font-size: 13px; font-weight: 500; color: var(--midnight); }
+.pillTech  { font-family: var(--font-mono); font-size: 10px; color: var(--fog); }
+
+/* ── Results ──────────────────────────────────────────────── */
+.results { margin-bottom: var(--space-6); }
+
+.resultsCard {
+  background: white;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--mist);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.severityRow { display: flex; align-items: center; }
+
+.block { display: flex; flex-direction: column; gap: var(--space-2); }
+
+.techniqueName {
+  font-family: var(--font-serif);
+  font-size: clamp(22px, 4vw, 30px);
+  color: var(--midnight);
+  line-height: 1.2;
+}
+
+.quoteBox {
+  border-left: 3px solid var(--coral-glow);
+  padding: var(--space-3) var(--space-4);
+  background: rgba(232,99,74,0.04);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.quoteText {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-style: italic;
+  color: var(--midnight);
+  line-height: 1.55;
+}
+
+.explanation { font-size: 15px; color: var(--deep-sea); line-height: 1.7; }
+
+.responseList { list-style: none; display: flex; flex-direction: column; gap: var(--space-2); }
+
+.responseItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--dawn-cream);
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  color: var(--midnight);
+  line-height: 1.55;
+}
+
+.responseNum { font-family: var(--font-mono); font-size: 10px; color: var(--fog); padding-top: 3px; flex-shrink: 0; }
+
+.resourcesBanner {
+  padding: var(--space-4);
+  background: var(--mist);
+  border-radius: var(--radius-lg);
+}
+
+.resourcesTitle { font-family: var(--font-serif); font-size: 19px; color: var(--midnight); margin-bottom: var(--space-1); }
+.resourcesSub   { font-size: 13px; color: var(--fog); margin-bottom: var(--space-3); }
+
+.resourcesList { display: flex; flex-direction: column; gap: var(--space-2); }
+
+.resourceItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3);
+  background: white;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--mist);
+  transition: border-color var(--transition-fast);
+}
+
+.resourceItem:hover { border-color: var(--fog); }
+
+.resourceName   { font-size: 14px; font-weight: 500; color: var(--midnight); }
+.resourceNumber { font-family: var(--font-mono); font-size: 14px; font-weight: 500; color: var(--coral-glow); flex-shrink: 0; }
+
+/* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .page { padding-top: var(--space-4); }
+  .resultsCard { padding: var(--space-4) var(--space-3); }
+}

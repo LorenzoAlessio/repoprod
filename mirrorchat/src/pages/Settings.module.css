@@ -1,0 +1,187 @@
+.page {
+  padding-top: var(--space-5);
+  padding-bottom: var(--space-7);
+  max-width: 680px;
+}
+
+.hero { margin-bottom: var(--space-6); }
+
+.title {
+  font-size: clamp(28px, 6vw, 42px);
+  margin-bottom: var(--space-3);
+}
+
+.subtitle {
+  font-size: 16px;
+  color: var(--fog);
+  line-height: 1.65;
+}
+
+/* ── Sections ─────────────────────────────────────────────── */
+.section {
+  margin-bottom: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ── Method Cards ─────────────────────────────────────────── */
+.methodGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.methodCard {
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--mist);
+  background: white;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.methodCardActive {
+  border-color: var(--sage-safe);
+  background: linear-gradient(135deg, rgba(91,154,139,0.04), rgba(61,139,139,0.02));
+}
+
+.methodCardComingSoon {
+  opacity: 0.65;
+}
+
+.methodTop {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.methodIcon {
+  font-size: 24px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.methodTitle {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  color: var(--midnight);
+  margin-bottom: var(--space-1);
+  line-height: 1.2;
+}
+
+.methodBadge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+}
+
+.badgeActive {
+  background: rgba(91,154,139,0.15);
+  color: var(--sage-safe);
+}
+
+.badgeSoon {
+  background: rgba(232,168,56,0.12);
+  color: var(--amber-warm);
+}
+
+.methodDesc {
+  font-size: 14px;
+  color: var(--fog);
+  line-height: 1.6;
+}
+
+/* ── Privacy Card ─────────────────────────────────────────── */
+.privacyCard {
+  padding: var(--space-5);
+  background: white;
+  border: 1px solid var(--mist);
+  border-radius: var(--radius-xl);
+}
+
+.privacyTitle {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  color: var(--midnight);
+  margin-bottom: var(--space-4);
+}
+
+.privacyList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.privacyItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  font-size: 15px;
+  color: var(--deep-sea);
+  line-height: 1.55;
+}
+
+.privacyCheck {
+  color: var(--sage-safe);
+  font-weight: 600;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+
+/* ── About Card ───────────────────────────────────────────── */
+.aboutCard {
+  padding: var(--space-5);
+  background: var(--midnight);
+  border-radius: var(--radius-xl);
+  color: rgba(255,255,255,0.75);
+}
+
+.aboutLogo {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: var(--space-3);
+}
+
+.aboutLogoAccent {
+  background: var(--gradient-aurora);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.aboutDesc {
+  font-size: 15px;
+  line-height: 1.7;
+  margin-bottom: var(--space-4);
+  color: rgba(200,196,188,0.7);
+  max-width: 50ch;
+}
+
+.aboutMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.metaItem {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: rgba(200,196,188,0.4);
+  letter-spacing: 0.04em;
+}
+
+.metaSep {
+  color: rgba(200,196,188,0.2);
+}
+
+@media (max-width: 640px) {
+  .page { padding-top: var(--space-4); }
+}
