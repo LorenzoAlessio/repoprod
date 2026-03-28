@@ -14,15 +14,17 @@ async function callQwenViaServer(prompt) {
   return data.text || '';
 }
 
-const NER_PROMPT = `Quali nomi di persona ci sono in questo testo? Per ognuno scrivi se è uomo, donna o non_determinato.
+const NER_PROMPT = `Elenca i nomi propri di persona in questa frase. Scrivi ogni nome su una riga nel formato: nome - uomo oppure nome - donna
 
-Testo: "Marco ha chiamato Sara dal bar"
-Marco=uomo, Sara=donna
+Frase: anna ha litigato con luca
+anna - donna
+luca - uomo
 
-Testo: "ieri ho parlato con luca e la sua ragazza giulia mi ha detto che"
-luca=uomo, giulia=donna
+Frase: ieri sono stato da elena e il suo ragazzo paolo
+elena - donna
+paolo - uomo
 
-Testo: "{TEXT}"
+Frase: {TEXT}
 `;
 
 const SKIP_WORDS = new Set([
@@ -33,16 +35,20 @@ const SKIP_WORDS = new Set([
   'presa','preso','vista','visto','stata','stato','avuta','avuto'
 ]);
 
-function parseNerOutput(output) {
+function parseNerOutput(output, originalText) {
   const entities = [];
-  const matches = output.matchAll(/([a-zA-ZÀ-ÿ]{2,})\s*=\s*(uomo|donna|maschio|femmina|non_determinato|non determinato)/gi);
+  // Match "Nome - Genere" or "Nome = Genere" or "Nome: Genere" or "Nome (Genere)"
+  const matches = output.matchAll(/([a-zA-ZÀ-ÿ]{2,})\s*[-=:(]\s*(\w+)/gi);
   for (const m of matches) {
     let name = m[1].trim();
     let gender = m[2].trim().toLowerCase();
-    if (gender === 'maschio') gender = 'uomo';
-    if (gender === 'femmina') gender = 'donna';
-    if (gender === 'non determinato') gender = 'non_determinato';
+    // Normalize gender variants
+    if (['maschio','mascio','maschile','m','male'].includes(gender)) gender = 'uomo';
+    if (['femmina','femminile','f','female'].includes(gender)) gender = 'donna';
+    if (!['uomo','donna'].includes(gender)) gender = 'non_determinato';
+    // Skip common words and names not in original text
     if (SKIP_WORDS.has(name.toLowerCase())) continue;
+    if (!originalText.toLowerCase().includes(name.toLowerCase())) continue;
     if (!entities.find(e => e.value.toLowerCase() === name.toLowerCase())) {
       entities.push({ type: 'PERSONA', value: name, gender });
     }
@@ -102,7 +108,7 @@ export async function anonymizeWithQwen(text, onProgress) {
       try { output = await callQwenViaServer(prompt); } catch { continue; }
     }
 
-    const entities = parseNerOutput(output);
+    const entities = parseNerOutput(output, chunks[i]);
     if (entities.length > 0) {
       for (const ent of entities) {
         if (!allEntities.find(e => e.value.toLowerCase() === ent.value.toLowerCase())) {
