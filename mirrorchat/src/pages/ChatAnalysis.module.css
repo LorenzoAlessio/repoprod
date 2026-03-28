@@ -345,3 +345,79 @@
   .page { padding-top: var(--space-4); }
   .resultsCard { padding: var(--space-4) var(--space-3); }
 }
+
+/* ── Qwen Progress ───────────────────────────────────────── */
+.qwenProgress {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  margin: 16px 0;
+  box-shadow: 0 4px 16px rgba(13,27,42,0.08);
+  border-top: 3px solid var(--coral-glow);
+}
+.qwenHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  font-size: 1.1rem;
+}
+.qwenTitle {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--midnight);
+}
+.qwenBar {
+  height: 8px;
+  background: var(--mist);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.qwenFill {
+  height: 100%;
+  background: linear-gradient(135deg, var(--coral-glow), var(--amber-warm), #FFD093);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+.qwenChunk {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--fog);
+  margin-bottom: 6px;
+}
+.qwenNote {
+  font-size: 0.8125rem;
+  color: var(--deep-sea);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+.entityPill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--teal-clarity);
+  background: rgba(61,139,139,0.12);
+  padding: 4px 12px;
+  border-radius: 100px;
+  display: inline-block;
+}
+.fallbackWarning {
+  display: flex;
+  gap: 12px;
+  padding: 14px 18px;
+  background: rgba(232,168,56,0.08);
+  border-left: 3px solid var(--amber-warm);
+  border-radius: 12px;
+  margin: 16px 0;
+}
+.fallbackTitle {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--midnight);
+  margin-bottom: 2px;
+}
+.fallbackText {
+  font-size: 0.8125rem;
+  color: var(--deep-sea);
+  line-height: 1.4;
+}

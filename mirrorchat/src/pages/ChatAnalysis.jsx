@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import SeverityIndicator from '../components/SeverityIndicator'
 import { analyzeChat } from '../utils/api'
+import { anonymizeWithQwen } from '../utils/qwenAnonymizer'
+import { getStoredGender } from './Settings'
 import { examples } from '../data/examples'
 import { resources } from '../data/resources'
 import styles from './ChatAnalysis.module.css'
@@ -60,6 +62,9 @@ export default function ChatAnalysis() {
   const [loading, setLoading]           = useState(false)
   const [error, setError]               = useState('')
   const [result, setResult]             = useState(null)
+  const [qwenProgress, setQwenProgress] = useState(null)
+  const [usedFallback, setUsedFallback] = useState(false)
+  const [personeGender, setPersoneGender] = useState({})
   const fileInputRef                    = useRef(null)
   const resultsRef                      = useRef(null)
 
@@ -67,24 +72,25 @@ export default function ChatAnalysis() {
   const textToAnon = rawText.trim()
   const debouncedText = useDebounce(textToAnon, 700)
 
-  // ── Anonymise via Python backend ──
+  // ── Anonymise via Qwen (runs on-device) ──
   const anonymize = useCallback(async (text) => {
     if (!text) { setAnonState({ status: 'idle', text: '', error: false }); return }
     setAnonState({ status: 'loading', text: '', error: false })
+    setQwenProgress({ phase: 'anonymizing', current: 0, total: 1, entities: 0 })
+    setUsedFallback(false)
     try {
-      const res = await fetch('/api/anonymize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+      const anonResult = await anonymizeWithQwen(text, (progress) => {
+        setQwenProgress(progress)
+        if (progress.phase === 'done') {
+          setUsedFallback(progress.usedFallback || false)
+        }
       })
-      const data = await res.json()
-      if (data.error === 'impossibile_anonimizzare' || !res.ok) {
-        setAnonState({ status: 'impossible', text: '', error: true })
-      } else {
-        setAnonState({ status: 'done', text: data.anonymized, error: false })
-      }
+      setAnonState({ status: 'done', text: anonResult.anonymized, error: false })
+      setPersoneGender(anonResult.personeGender || {})
+      setQwenProgress(null)
     } catch {
       setAnonState({ status: 'impossible', text: '', error: true })
+      setQwenProgress(null)
     }
   }, [])
 
@@ -165,7 +171,8 @@ export default function ChatAnalysis() {
 
     setLoading(true)
     try {
-      const data = await analyzeChat(textForLLM)
+      const genere = getStoredGender()
+      const data = await analyzeChat(textForLLM, genere, personeGender)
       setResult(data)
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
     } catch (e) {
@@ -196,7 +203,7 @@ export default function ChatAnalysis() {
           </div>
           <div className={styles.anonLoading}>
             <span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} />
-            <span>Script Python in esecuzione…</span>
+            <span>Anonimizzazione Qwen in esecuzione…</span>
           </div>
         </div>
       )
@@ -321,6 +328,34 @@ export default function ChatAnalysis() {
 
         {/* Anon preview */}
         {renderAnonPreview()}
+
+        {/* Qwen progress */}
+        {qwenProgress && qwenProgress.phase === 'anonymizing' && (
+          <div className={styles.qwenProgress}>
+            <div className={styles.qwenHeader}>
+              <span>🛡️</span>
+              <span className={styles.qwenTitle}>Protezione privacy in corso</span>
+            </div>
+            <div className={styles.qwenBar}>
+              <div className={styles.qwenFill} style={{ width: `${qwenProgress.total > 0 ? Math.round((qwenProgress.current / qwenProgress.total) * 100) : 0}%` }} />
+            </div>
+            <p className={styles.qwenChunk}>Blocco {qwenProgress.current}/{qwenProgress.total}</p>
+            <p className={styles.qwenNote}>Anonimizzazione in corso sul tuo dispositivo. Nessun dato esce dal telefono.</p>
+            {qwenProgress.entities > 0 && (
+              <span className={styles.entityPill}>{qwenProgress.entities} entità trovate</span>
+            )}
+          </div>
+        )}
+
+        {usedFallback && !qwenProgress && (
+          <div className={styles.fallbackWarning}>
+            <span>⚠️</span>
+            <div>
+              <p className={styles.fallbackTitle}>Anonimizzazione semplificata</p>
+              <p className={styles.fallbackText}>L'analisi avanzata non è disponibile. I dati sono comunque protetti.</p>
+            </div>
+          </div>
+        )}
 
         {/* Analyze CTA */}
         <button
