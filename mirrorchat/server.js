@@ -1,12 +1,14 @@
 const express = require('express');
 const cors = require('cors');
-const Anthropic = require('@anthropic-ai/sdk');
+const OpenAI = require('openai');
 const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const client = new Anthropic.default();
+const client = new OpenAI.default({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 app.use(cors());
 app.use(express.json());
@@ -24,14 +26,16 @@ function extractJSON(text) {
   return JSON.parse(trimmed.slice(start, end + 1));
 }
 
-async function callClaude(systemPrompt, userMessage) {
-  var response = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
+async function callLLM(systemPrompt, userMessage) {
+  var response = await client.chat.completions.create({
+    model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
     max_tokens: 1024,
-    system: systemPrompt,
-    messages: [{ role: 'user', content: userMessage }]
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userMessage }
+    ]
   });
-  var text = response.content[0].text;
+  var text = response.choices[0].message.content;
   return extractJSON(text);
 }
 
@@ -41,10 +45,10 @@ app.post('/api/chat', async function (req, res) {
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ error: 'Campo "message" richiesto' });
     }
-    var data = await callClaude(CHAT_SYSTEM, message);
+    var data = await callLLM(CHAT_SYSTEM, message);
     res.json(data);
   } catch (err) {
-    console.error('[/api/chat]', err.message);
+    console.error('[/api/chat]', err);
     res.status(500).json({
       error: true,
       tecnica: 'Errore',
@@ -63,7 +67,7 @@ app.post('/api/voice', async function (req, res) {
     if (!transcript || typeof transcript !== 'string') {
       return res.status(400).json({ error: 'Campo "transcript" richiesto' });
     }
-    var data = await callClaude(VOICE_SYSTEM, transcript);
+    var data = await callLLM(VOICE_SYSTEM, transcript);
     res.json(data);
   } catch (err) {
     console.error('[/api/voice]', err.message);
