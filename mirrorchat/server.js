@@ -181,6 +181,49 @@ app.post('/api/anonymize', async function (req, res) {
   }
 });
 
+// ── Profile consolidation ──
+const PROFILE_SYSTEM = `Sei un assistente che costruisce un profilo anonimo di una persona a partire da fatti estratti dalle sue conversazioni. Il profilo serve a fornire assistenza e protezione alla persona.
+
+Genera un documento Markdown con due sezioni:
+1. Scheda sintetica (bullet list: genere, età stimata, relazione, figli, contesto, pattern rilevati, livello rischio 1-5)
+2. Sezioni narrative (situazione relazionale, contesto sociale, pattern di rischio, stato emotivo)
+
+Se hai un profilo precedente, aggiornalo con i nuovi fatti senza perdere informazioni precedenti. Se un nuovo fatto contraddice uno vecchio, usa il più recente.
+
+NON inventare informazioni. Se un dato non è noto, non includerlo.
+Scrivi in italiano. Il profilo deve essere completamente anonimo: nessun nome, luogo o dato identificabile.`;
+
+app.post('/api/profile', async (req, res) => {
+  try {
+    const { facts, previousProfile } = req.body;
+    if (!facts || !Array.isArray(facts)) {
+      return res.status(400).json({ error: 'Campo "facts" richiesto (array)' });
+    }
+
+    const factsStr = facts.map(f => `${f.fact}=${f.value} (${f.source}, ${f.date})`).join('\n');
+    let userMessage = `Fatti estratti:\n${factsStr}`;
+    if (previousProfile) {
+      userMessage += `\n\nProfilo precedente:\n${previousProfile}`;
+    }
+    userMessage += '\n\nGenera il profilo aggiornato in Markdown.';
+
+    const client = getOpenAIClient();
+    const response = await client.chat.completions.create({
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      max_tokens: 2048,
+      messages: [
+        { role: 'system', content: PROFILE_SYSTEM },
+        { role: 'user', content: userMessage }
+      ]
+    });
+    const profile = response.choices[0].message.content.trim();
+    res.json({ profile });
+  } catch (err) {
+    console.error('[/api/profile]', err);
+    res.status(500).json({ error: true, profile: '' });
+  }
+});
+
 // ── API: Chat analysis ────────────────────────────────────────
 app.post('/api/chat', async (req, res) => {
   try {
