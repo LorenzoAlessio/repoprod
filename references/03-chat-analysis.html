@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MirrorChat — Chat Analysis (Reference Mockup)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    background: #F0EDE8;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 48px 20px 80px;
+    font-family: 'Instrument Sans', -apple-system, sans-serif;
+    position: relative;
+  }
+
+  /* Grain texture overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 180px 180px;
+  }
+
+  /* Page label */
+  .page-label {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #7C7C8A;
+  }
+
+  /* Phone Frame */
+  .phone-frame {
+    width: 390px;
+    min-height: 900px;
+    background: #FAF8F5;
+    border-radius: 40px;
+    border: 2px solid #1a1a1a;
+    overflow: hidden;
+    box-shadow:
+      0 4px 6px rgba(0,0,0,0.04),
+      0 10px 24px rgba(0,0,0,0.08),
+      0 30px 60px rgba(0,0,0,0.06),
+      inset 0 0 0 1px rgba(255,255,255,0.1);
+    position: relative;
+  }
+
+  /* Notch */
+  .notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 160px;
+    height: 32px;
+    background: #0D1B2A;
+    border-radius: 0 0 20px 20px;
+    z-index: 10;
+  }
+
+  /* Nav Bar */
+  .navbar {
+    background: #0D1B2A;
+    padding: 52px 24px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+  }
+
+  .navbar-brand {
+    font-family: 'Instrument Serif', serif;
+    font-size: 20px;
+    color: #FFFFFF;
+    letter-spacing: -0.3px;
+  }
+
+  .navbar-links {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .navbar-links a {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.45);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .navbar-links a.active {
+    color: #FFFFFF;
+    font-weight: 500;
+  }
+
+  /* Page Content */
+  .page-content {
+    padding: 28px 20px 32px;
+    overflow-y: auto;
+  }
+
+  /* Title Section */
+  .title-section {
+    margin-bottom: 24px;
+  }
+
+  .title-section h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: #0D1B2A;
+    line-height: 1.15;
+    margin-bottom: 8px;
+  }
+
+  .title-section .subtitle {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #7C7C8A;
+    margin-bottom: 12px;
+  }
+
+  .aurora-line {
+    width: 40px;
+    height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #3D8B8B, #6BB5A0, #D4A574, #E8634A);
+  }
+
+  /* Textarea */
+  .textarea-wrapper {
+    margin-bottom: 20px;
+  }
+
+  .textarea-mock {
+    width: 100%;
+    border: 1.5px solid #C8C4BC;
+    border-radius: 12px;
+    padding: 16px;
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #0D1B2A;
+    line-height: 1.55;
+    background: #FFFFFF;
+    min-height: 120px;
+    resize: none;
+    outline: none;
+  }
+
+  /* Anonymized Preview */
+  .anon-preview {
+    border: 2px dashed #C8C4BC;
+    border-radius: 12px;
+    background: #EDEAE5;
+    padding: 16px;
+    margin-bottom: 28px;
+  }
+
+  .anon-preview .label {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: #7C7C8A;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  .anon-preview .content {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: #0D1B2A;
+    line-height: 1.6;
+  }
+
+  .anon-preview .content .pill {
+    background: rgba(61, 139, 139, 0.15);
+    color: #2D7070;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 12px;
+  }
+
+  /* Separator */
+  .separator {
+    height: 1px;
+    background: #E0DCD6;
+    margin: 4px 0 24px;
+  }
+
+  /* Results Section */
+  .results-section {
+    animation: fadeInUp 0.4s ease;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Severity Indicator */
+  .severity-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .severity-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #E8634A;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(232, 99, 74, 0.3);
+  }
+
+  .severity-circle svg {
+    width: 22px;
+    height: 22px;
+    fill: #fff;
+  }
+
+  .severity-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .severity-info .type-name {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    color: #0D1B2A;
+    line-height: 1.1;
+  }
+
+  .severity-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #E8634A;
+    color: #FFFFFF;
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 100px;
+    width: fit-content;
+    letter-spacing: 0.3px;
+  }
+
+  /* Translation Box */
+  .translation-box {
+    background: #EDEAE5;
+    border-radius: 12px;
+    padding: 18px 18px 18px 20px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .translation-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, #3D8B8B, #6BB5A0, #D4A574, #E8634A);
+    border-radius: 3px 0 0 3px;
+  }
+
+  .translation-box .label {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #7C7C8A;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  .translation-box .quote {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    font-style: italic;
+    color: #1B3A4B;
+    line-height: 1.6;
+  }
+
+  /* Explanation */
+  .explanation {
+    margin-bottom: 28px;
+  }
+
+  .explanation .heading {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0D1B2A;
+    margin-bottom: 8px;
+  }
+
+  .explanation .body {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #1B3A4B;
+    line-height: 1.6;
+  }
+
+  /* Response Cards */
+  .response-section {
+    margin-bottom: 28px;
+  }
+
+  .response-section .label {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0D1B2A;
+    margin-bottom: 12px;
+  }
+
+  .cards-scroll {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    margin-left: -20px;
+    margin-right: -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .cards-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .response-card {
+    min-width: 240px;
+    max-width: 240px;
+    background: #FFFFFF;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+    flex-shrink: 0;
+  }
+
+  .response-card .card-number {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #3D8B8B;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  .response-card .card-text {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #1B3A4B;
+    line-height: 1.55;
+  }
+
+  /* Resources Banner */
+  .resources-banner {
+    background: #FFF5F3;
+    border-radius: 12px;
+    padding: 18px 18px 18px 20px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .resources-banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 3px;
+    background: #E8634A;
+    border-radius: 3px 0 0 3px;
+  }
+
+  .resources-banner .banner-title {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #0D1B2A;
+    margin-bottom: 6px;
+  }
+
+  .resources-banner .banner-body {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #1B3A4B;
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+
+  .resources-banner .banner-link {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #3D8B8B;
+    text-decoration: none;
+  }
+
+  /* Example Buttons */
+  .examples-section {
+    margin-bottom: 8px;
+  }
+
+  .examples-section .label {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #7C7C8A;
+    margin-bottom: 12px;
+  }
+
+  .example-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .example-pill {
+    background: #EDEAE5;
+    border: none;
+    border-radius: 100px;
+    padding: 8px 16px;
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: #1B3A4B;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .example-pill:hover {
+    background: #E2DED7;
+    transform: translateY(-1px);
+  }
+
+  /* Analyze Button (shown as already pressed/loading complete) */
+  .analyze-btn {
+    width: 100%;
+    padding: 14px 24px;
+    background: #0D1B2A;
+    color: #FFFFFF;
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-bottom: 24px;
+    letter-spacing: 0.2px;
+    transition: background 0.2s;
+  }
+
+  .analyze-btn:hover {
+    background: #162A3E;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-label">03 &mdash; Chat Analysis (with results)</div>
+
+<div class="phone-frame">
+  <!-- Notch -->
+  <div class="notch"></div>
+
+  <!-- Nav Bar -->
+  <nav class="navbar">
+    <div class="navbar-brand">MirrorChat</div>
+    <div class="navbar-links">
+      <a href="#">Home</a>
+      <a href="#" class="active">Analizza</a>
+      <a href="#">Info</a>
+    </div>
+  </nav>
+
+  <!-- Page Content -->
+  <div class="page-content">
+
+    <!-- Title -->
+    <div class="title-section">
+      <h1>Analizza un messaggio</h1>
+      <p class="subtitle">Incolla un messaggio che ti ha fatto stare male</p>
+      <div class="aurora-line"></div>
+    </div>
+
+    <!-- Textarea with sample text -->
+    <div class="textarea-wrapper">
+      <div class="textarea-mock">Amore ma perché hai messo like alla foto di Marco?? 😤 Ti ho già detto che non mi piace... se mi amassi davvero non lo faresti. Fammi vedere il telefono stasera, così mi fido. Non è che non mi fido, è che ci tengo a noi ❤️</div>
+    </div>
+
+    <!-- Analyze Button -->
+    <button class="analyze-btn">Analizza messaggio</button>
+
+    <!-- Anonymized Preview -->
+    <div class="anon-preview">
+      <div class="label">Anteprima anonimizzata</div>
+      <div class="content">Amore ma perché hai messo like alla foto di <span class="pill">[PERSONA_1]</span>?? 😤 Ti ho già detto che non mi piace... se mi amassi davvero non lo faresti. Fammi vedere il telefono stasera, così mi fido.</div>
+    </div>
+
+    <!-- Separator -->
+    <div class="separator"></div>
+
+    <!-- Results -->
+    <div class="results-section">
+
+      <!-- Severity -->
+      <div class="severity-row">
+        <div class="severity-circle">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L13.09 8.26L18 6L14.74 10.91L21 12L14.74 13.09L18 18L13.09 15.74L12 22L10.91 15.74L6 18L9.26 13.09L3 12L9.26 10.91L6 6L10.91 8.26L12 2Z" fill="white"/>
+          </svg>
+        </div>
+        <div class="severity-info">
+          <span class="type-name">Controllo digitale</span>
+          <span class="severity-badge">4 / 5</span>
+        </div>
+      </div>
+
+      <!-- Translation Box -->
+      <div class="translation-box">
+        <div class="label">Traduzione</div>
+        <p class="quote">&ldquo;Ti sto dicendo che non puoi avere amicizie che non controllo io. Uso l&rsquo;amore come scusa per invadere la tua privacy e controllare il tuo telefono.&rdquo;</p>
+      </div>
+
+      <!-- Explanation -->
+      <div class="explanation">
+        <p class="heading">Perché è problematico</p>
+        <p class="body">Controllare il telefono, le amicizie e i social non è protezione &mdash; è possesso. L&rsquo;amore vero non ha bisogno di sorvegliare.</p>
+      </div>
+
+      <!-- Response Cards -->
+      <div class="response-section">
+        <p class="label">Come rispondere:</p>
+        <div class="cards-scroll">
+          <div class="response-card">
+            <div class="card-number">Risposta 1</div>
+            <p class="card-text">Le mie amicizie non sono una minaccia. Se hai insicurezze, parliamone, ma controllare il mio telefono non è la soluzione.</p>
+          </div>
+          <div class="response-card">
+            <div class="card-number">Risposta 2</div>
+            <p class="card-text">Mi fido di te e ho bisogno che ti fidi di me. Il like a una foto non cambia quello che provo.</p>
+          </div>
+          <div class="response-card">
+            <div class="card-number">Risposta 3</div>
+            <p class="card-text">Non voglio mostrarti il telefono per &ldquo;dimostrare&rdquo; qualcosa. La fiducia non funziona così.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resources Banner -->
+      <div class="resources-banner">
+        <p class="banner-title">Hai bisogno di aiuto?</p>
+        <p class="banner-body">1522 &mdash; Numero antiviolenza, attivo 24/7, gratuito</p>
+        <a href="#" class="banner-link">Altre risorse &rarr;</a>
+      </div>
+
+      <!-- Example Buttons -->
+      <div class="examples-section">
+        <p class="label">Prova con questi esempi</p>
+        <div class="example-pills">
+          <button class="example-pill">Gelosia possessiva</button>
+          <button class="example-pill">Colpevolizzazione</button>
+          <button class="example-pill">Isolamento</button>
+          <button class="example-pill">Svalutazione</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

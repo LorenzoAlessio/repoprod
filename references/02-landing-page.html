@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MirrorChat — Landing Page Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  /* ── Reset ── */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* ── Page background ── */
+  html, body {
+    height: 100%;
+    background: #F0EDE8;
+    font-family: 'Instrument Sans', -apple-system, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ── Phone Frame ── */
+  .phone-frame {
+    position: relative;
+    width: 390px;
+    height: 844px;
+    border-radius: 40px;
+    border: 6px solid #1A1A1A;
+    background: #FAF8F5;
+    box-shadow:
+      0 0 0 2px #2A2A2A,
+      0 20px 60px rgba(13, 27, 42, 0.25),
+      0 8px 24px rgba(13, 27, 42, 0.15),
+      inset 0 0 0 1px rgba(255,255,255,0.05);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  /* Notch */
+  .phone-frame::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 126px;
+    height: 28px;
+    background: #1A1A1A;
+    border-radius: 0 0 18px 18px;
+    z-index: 100;
+  }
+
+  /* ── Phone Viewport (scrollable) ── */
+  .phone-viewport {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+  }
+  .phone-viewport::-webkit-scrollbar { display: none; }
+
+  /* Grain texture overlay */
+  .phone-viewport::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 200px 200px;
+  }
+
+  /* ── Nav Bar ── */
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    padding: 0 20px;
+    background: #0D1B2A;
+    padding-top: 4px; /* compensate for notch visual balance */
+  }
+  .navbar-logo {
+    font-family: 'Instrument Serif', serif;
+    font-size: 18px;
+    color: #fff;
+    letter-spacing: -0.01em;
+  }
+  .navbar-links {
+    display: flex;
+    gap: 16px;
+    list-style: none;
+  }
+  .navbar-links a {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .navbar-links a:hover { color: #fff; }
+
+  /* ── Hero ── */
+  .hero {
+    background: #FAF8F5;
+    padding: 48px 24px 32px;
+    text-align: center;
+  }
+  .hero-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 36px;
+    color: #0D1B2A;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .hero-line {
+    width: 60px;
+    height: 3px;
+    margin: 16px auto;
+    border-radius: 2px;
+    background: linear-gradient(135deg, #E8634A, #E8A838, #FFD093);
+  }
+  .hero-subtitle {
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 400;
+    font-size: 15px;
+    color: #7C7C8A;
+    line-height: 1.55;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+
+  /* ── Feature Cards ── */
+  .features {
+    padding: 8px 20px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: #FAF8F5;
+  }
+  .feature-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 16px rgba(13,27,42,0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .feature-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .feature-title {
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    color: #0D1B2A;
+    margin-bottom: 6px;
+  }
+  .feature-desc {
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    color: #7C7C8A;
+    line-height: 1.5;
+  }
+
+  /* ── How it Works ── */
+  .how-it-works {
+    background: #EDEAE5;
+    padding: 36px 24px 40px;
+  }
+  .how-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 24px;
+    color: #0D1B2A;
+    margin-bottom: 28px;
+    letter-spacing: -0.01em;
+  }
+  .steps {
+    position: relative;
+    padding-left: 28px;
+  }
+  /* Connecting line */
+  .steps::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: #C8C4BC;
+    border-radius: 1px;
+  }
+  .step {
+    position: relative;
+    margin-bottom: 28px;
+  }
+  .step:last-child { margin-bottom: 0; }
+  /* Dot on the line */
+  .step::before {
+    content: '';
+    position: absolute;
+    left: -24px;
+    top: 4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    background: #EDEAE5;
+  }
+  .step:nth-child(1)::before { color: #E8634A; }
+  .step:nth-child(2)::before { color: #E8A838; }
+  .step:nth-child(3)::before { color: #5B9A8B; }
+
+  .step-number {
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+  }
+  .step:nth-child(1) .step-number { color: #E8634A; }
+  .step:nth-child(2) .step-number { color: #E8A838; }
+  .step:nth-child(3) .step-number { color: #5B9A8B; }
+
+  .step-title {
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    color: #0D1B2A;
+    margin-bottom: 4px;
+  }
+  .step-desc {
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 400;
+    font-size: 13px;
+    color: #7C7C8A;
+    line-height: 1.5;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    background: #0D1B2A;
+    padding: 28px 24px 36px;
+    text-align: center;
+  }
+  .footer p {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.6;
+  }
+  .footer .footer-privacy {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .footer .footer-privacy svg {
+    flex-shrink: 0;
+  }
+  .footer .footer-copyright {
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+  }
+
+  /* ── Label badge below phone ── */
+  .mockup-label {
+    position: absolute;
+    bottom: -36px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: #A09C94;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* ── Wrapper for centering + label ── */
+  .mockup-wrapper {
+    position: relative;
+  }
+</style>
+</head>
+<body>
+
+<div class="mockup-wrapper">
+  <div class="phone-frame">
+    <div class="phone-viewport">
+
+      <!-- Nav Bar -->
+      <nav class="navbar">
+        <span class="navbar-logo">MirrorChat</span>
+        <ul class="navbar-links">
+          <li><a href="#">Analizza</a></li>
+          <li><a href="#">SafeVoice</a></li>
+          <li><a href="#">Impara</a></li>
+        </ul>
+      </nav>
+
+      <!-- Hero Section -->
+      <section class="hero">
+        <h1 class="hero-title">MirrorChat</h1>
+        <div class="hero-line"></div>
+        <p class="hero-subtitle">Lo specchio che rivela la manipolazione nelle tue chat e ti protegge dal vivo</p>
+      </section>
+
+      <!-- Feature Cards -->
+      <section class="features">
+
+        <div class="feature-card">
+          <span class="feature-icon">
+            <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+              <rect width="36" height="36" rx="10" fill="#FDF0ED"/>
+              <circle cx="16" cy="16" r="6" stroke="#E8634A" stroke-width="2" fill="none"/>
+              <line x1="20.5" y1="20.5" x2="26" y2="26" stroke="#E8634A" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <h3 class="feature-title">Analizza Chat</h3>
+          <p class="feature-desc">Incolla un messaggio, l'AI rivela la manipolazione nascosta</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-icon">
+            <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+              <rect width="36" height="36" rx="10" fill="#EDF5F3"/>
+              <path d="M18 8 L26 14 V24 C26 26 22 28 18 30 C14 28 10 26 10 24 V14 Z" stroke="#5B9A8B" stroke-width="2" fill="none" stroke-linejoin="round"/>
+              <path d="M14 18 L17 21 L22 15" stroke="#5B9A8B" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <h3 class="feature-title">SafeVoice</h3>
+          <p class="feature-desc">Protezione in tempo reale durante conversazioni pericolose</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-icon">
+            <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+              <rect width="36" height="36" rx="10" fill="#FEF6E9"/>
+              <rect x="10" y="8" width="16" height="20" rx="2" stroke="#E8A838" stroke-width="2" fill="none"/>
+              <line x1="14" y1="14" x2="22" y2="14" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="14" y1="18" x2="22" y2="18" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="14" y1="22" x2="19" y2="22" stroke="#E8A838" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <h3 class="feature-title">Impara</h3>
+          <p class="feature-desc">Riconosci le tecniche manipolatorie e difenditi</p>
+        </div>
+
+      </section>
+
+      <!-- How it Works -->
+      <section class="how-it-works">
+        <h2 class="how-title">Come funziona</h2>
+        <div class="steps">
+
+          <div class="step">
+            <div class="step-number">01</div>
+            <div class="step-title">Incolla il messaggio</div>
+            <p class="step-desc">Copia una conversazione sospetta e incollala nell'analizzatore</p>
+          </div>
+
+          <div class="step">
+            <div class="step-number">02</div>
+            <div class="step-title">L'AI analizza</div>
+            <p class="step-desc">Il modello identifica pattern manipolatori, gaslighting e tecniche di controllo</p>
+          </div>
+
+          <div class="step">
+            <div class="step-number">03</div>
+            <div class="step-title">Scopri la verit&agrave;</div>
+            <p class="step-desc">Ricevi un report chiaro con spiegazioni e suggerimenti per proteggerti</p>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <div class="footer-privacy">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <rect x="2" y="5" width="8" height="6" rx="1.5" stroke="rgba(255,255,255,0.5)" stroke-width="1.2" fill="none"/>
+            <path d="M4 5V3.5C4 2.12 5.12 1 6.5 1h0C7.33 1 8 1.67 8 2.5V5" stroke="rgba(255,255,255,0.5)" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+          </svg>
+          <p>I tuoi dati non escono mai dal telefono</p>
+        </div>
+        <p class="footer-copyright">&copy; 2026 MirrorChat</p>
+      </footer>
+
+    </div>
+  </div>
+  <div class="mockup-label">MirrorChat &mdash; Landing Page &middot; 390&times;844</div>
+</div>
+
+</body>
+</html>

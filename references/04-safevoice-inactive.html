@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MirrorChat SafeVoice — Inactive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #F0EDE8;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Instrument Sans', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .phone-frame {
+    width: 390px;
+    height: 844px;
+    border-radius: 40px;
+    border: 2.5px solid #0D1B2A;
+    background: #FAF8F5;
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+      0 25px 60px rgba(13, 27, 42, 0.18),
+      0 8px 20px rgba(13, 27, 42, 0.10),
+      inset 0 0 0 1px rgba(255,255,255,0.08);
+  }
+
+  /* Grain texture overlay */
+  .phone-frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 38px;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 128px 128px;
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* Dynamic Island */
+  .dynamic-island {
+    width: 120px;
+    height: 34px;
+    background: #0D1B2A;
+    border-radius: 20px;
+    margin: 10px auto 0;
+    position: relative;
+    z-index: 10;
+  }
+
+  /* Nav */
+  .nav {
+    background: #0D1B2A;
+    padding: 14px 20px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nav-brand {
+    font-family: 'Instrument Serif', serif;
+    font-size: 20px;
+    color: #FFFFFF;
+    letter-spacing: -0.3px;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .nav-link {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    letter-spacing: 0.2px;
+  }
+
+  .nav-link.active {
+    color: #FFFFFF;
+    position: relative;
+  }
+
+  .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #E8634A, #E8A838, #FFD093);
+    border-radius: 1px;
+  }
+
+  /* Content */
+  .content {
+    padding: 28px 20px 20px;
+    overflow-y: auto;
+    height: calc(844px - 34px - 10px - 52px);
+  }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .hero-icon {
+    margin-bottom: 12px;
+  }
+
+  .hero-icon svg {
+    width: 48px;
+    height: 48px;
+  }
+
+  .hero-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 32px;
+    color: #0D1B2A;
+    letter-spacing: -0.5px;
+    margin-bottom: 10px;
+  }
+
+  .hero-line {
+    width: 40px;
+    height: 3px;
+    background: linear-gradient(90deg, #E8634A, #E8A838, #FFD093);
+    border-radius: 2px;
+    margin: 0 auto 10px;
+  }
+
+  .hero-subtitle {
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 400;
+    font-size: 15px;
+    color: #7C7C8A;
+  }
+
+  /* Form Card */
+  .form-card {
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow:
+      0 4px 16px rgba(13, 27, 42, 0.06),
+      0 1px 4px rgba(13, 27, 42, 0.04);
+    margin-bottom: 20px;
+  }
+
+  .form-label {
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    color: #0D1B2A;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .form-group {
+    margin-bottom: 14px;
+  }
+
+  .form-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .form-input,
+  .form-select,
+  .form-textarea {
+    width: 100%;
+    border: 1.5px solid #C8C4BC;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 400;
+    font-size: 15px;
+    color: #0D1B2A;
+    background: #FFFFFF;
+    outline: none;
+    transition: border-color 0.2s ease;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .form-input::placeholder,
+  .form-textarea::placeholder {
+    color: #C8C4BC;
+  }
+
+  .form-input:focus,
+  .form-select:focus,
+  .form-textarea:focus {
+    border-color: #E8A838;
+  }
+
+  .form-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23C8C4BC' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px;
+    padding-right: 40px;
+    color: #C8C4BC;
+  }
+
+  .form-select.has-value {
+    color: #0D1B2A;
+  }
+
+  .form-textarea {
+    height: 72px;
+    resize: none;
+  }
+
+  /* Activate Button */
+  .activate-btn {
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(135deg, #E8634A 0%, #E8A838 50%, #FFD093 100%);
+    border: none;
+    border-radius: 12px;
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    color: #FFFFFF;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(232, 99, 74, 0.3);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    margin-bottom: 24px;
+  }
+
+  .activate-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 28px rgba(232, 99, 74, 0.38);
+  }
+
+  .activate-btn:active {
+    transform: translateY(0);
+  }
+
+  /* Privacy Notes */
+  .privacy-notes {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 4px;
+  }
+
+  .privacy-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 12px;
+    color: #7C7C8A;
+    line-height: 1.5;
+  }
+
+  .privacy-note .icon {
+    flex-shrink: 0;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <!-- Dynamic Island -->
+  <div class="dynamic-island"></div>
+
+  <!-- Nav -->
+  <nav class="nav">
+    <span class="nav-brand">MirrorChat</span>
+    <div class="nav-links">
+      <a href="#" class="nav-link">Chat</a>
+      <a href="#" class="nav-link active">SafeVoice</a>
+      <a href="#" class="nav-link">Diario</a>
+    </div>
+  </nav>
+
+  <!-- Content -->
+  <div class="content">
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-icon">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M24 4L6 14V24C6 35.1 13.68 45.36 24 48C34.32 45.36 42 35.1 42 24V14L24 4Z" stroke="#0D1B2A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <path d="M18 24L22 28L30 20" stroke="#0D1B2A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h1 class="hero-title">SafeVoice</h1>
+      <div class="hero-line"></div>
+      <p class="hero-subtitle">Protezione in tempo reale</p>
+    </div>
+
+    <!-- Person Form -->
+    <div class="form-card">
+      <label class="form-label">Con chi sarai?</label>
+
+      <div class="form-group">
+        <input type="text" class="form-input" placeholder="Nome della persona">
+      </div>
+
+      <div class="form-group">
+        <select class="form-select">
+          <option value="" disabled selected>Relazione</option>
+          <option>Partner</option>
+          <option>Ex partner</option>
+          <option>Familiare</option>
+          <option>Conoscente</option>
+          <option>Altro</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <textarea class="form-textarea" placeholder="Note aggiuntive (opzionale)"></textarea>
+      </div>
+    </div>
+
+    <!-- Activate Button -->
+    <button class="activate-btn">Attiva SafeVoice</button>
+
+    <!-- Privacy Notes -->
+    <div class="privacy-notes">
+      <div class="privacy-note">
+        <span class="icon">&#128274;</span>
+        <span>L'audio viene trascritto e anonimizzato localmente</span>
+      </div>
+      <div class="privacy-note">
+        <span class="icon">&#9878;&#65039;</span>
+        <span>In Italia registrare una propria conversazione è lecito</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

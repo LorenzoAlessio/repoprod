@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MirrorChat — Brand System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif&family=JetBrains+Mono&display=swap" rel="stylesheet">
+<style>
+  /* ── Reset & Base ────────────────────────────────────── */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #FAF8F5;
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 400;
+    color: #0D1B2A;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Noise grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 256px 256px;
+  }
+
+  /* ── Page Container ──────────────────────────────────── */
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 80px 40px 120px;
+  }
+
+  /* ── Section Spacing ─────────────────────────────────── */
+  .section {
+    margin-bottom: 80px;
+  }
+
+  .section-label {
+    font-family: 'Instrument Sans', sans-serif;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #C8C4BC;
+    margin-bottom: 24px;
+  }
+
+  .section-title {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: 28px;
+    color: #0D1B2A;
+    margin-bottom: 40px;
+    line-height: 1.2;
+  }
+
+  /* ── 1. Header ───────────────────────────────────────── */
+  .header {
+    margin-bottom: 96px;
+  }
+
+  .header h1 {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    font-size: 56px;
+    line-height: 1.1;
+    color: #0D1B2A;
+    letter-spacing: -0.01em;
+    margin-bottom: 24px;
+  }
+
+  .header-line {
+    height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(135deg, #E8634A, #E8A838, #FFD093);
+  }
+
+  .header-sub {
+    margin-top: 20px;
+    font-size: 15px;
+    color: #C8C4BC;
+    font-weight: 400;
+  }
+
+  /* ── 2. Color Palette Grid ───────────────────────────── */
+  .palette-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 120px);
+    gap: 24px;
+    justify-content: start;
+  }
+
+  .swatch {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .swatch-color {
+    width: 120px;
+    height: 120px;
+    border-radius: 16px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    padding: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .swatch-color:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  }
+
+  .swatch-color .hex {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.02em;
+  }
+
+  .swatch-name {
+    margin-top: 10px;
+    font-weight: 500;
+    font-size: 13px;
+    color: #0D1B2A;
+  }
+
+  .swatch-hex-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #C8C4BC;
+    margin-top: 2px;
+  }
+
+  /* ── 3. Gradients ────────────────────────────────────── */
+  .gradient-bar {
+    height: 80px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    padding: 0 28px;
+    transition: transform 0.2s ease;
+  }
+
+  .gradient-bar:hover {
+    transform: scale(1.005);
+  }
+
+  .gradient-bar .label {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    color: #fff;
+  }
+
+  .gradient-bar .css-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+    margin-left: auto;
+  }
+
+  .gradient-aurora {
+    background: linear-gradient(135deg, #E8634A 0%, #E8A838 50%, #FFD093 100%);
+  }
+
+  .gradient-calm {
+    background: linear-gradient(135deg, #5B9A8B 0%, #3D8B8B 100%);
+  }
+
+  /* ── 4. Typography Specimen ──────────────────────────── */
+  .type-family {
+    margin-bottom: 48px;
+    padding-bottom: 48px;
+    border-bottom: 1px solid #EDEAE5;
+  }
+
+  .type-family:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .type-family-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #C8C4BC;
+    margin-bottom: 24px;
+  }
+
+  .type-sample {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+
+  .type-sample .size-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #C8C4BC;
+    min-width: 80px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .type-sample .text {
+    color: #0D1B2A;
+  }
+
+  .type-serif .text {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+  }
+
+  .type-sans .text {
+    font-family: 'Instrument Sans', sans-serif;
+  }
+
+  .type-mono .text {
+    font-family: 'JetBrains Mono', monospace;
+    color: #1B3A4B;
+  }
+
+  .weight-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #C8C4BC;
+    margin-left: 8px;
+    white-space: nowrap;
+  }
+
+  /* ── 5. Severity System ──────────────────────────────── */
+  .severity-row {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+  }
+
+  .severity-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    padding: 28px 12px;
+    border-radius: 16px;
+    background: #fff;
+    border: 1px solid #EDEAE5;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .severity-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  }
+
+  .severity-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .severity-circle.glow {
+    box-shadow: 0 0 20px rgba(232, 99, 74, 0.4);
+  }
+
+  .severity-circle.pulse {
+    box-shadow: 0 0 28px rgba(193, 68, 51, 0.55);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(193, 68, 51, 0.35); transform: scale(1); }
+    50% { box-shadow: 0 0 36px rgba(193, 68, 51, 0.65); transform: scale(1.06); }
+  }
+
+  .severity-level {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #C8C4BC;
+    letter-spacing: 0.06em;
+  }
+
+  .severity-label {
+    font-weight: 500;
+    font-size: 13px;
+    text-align: center;
+    color: #0D1B2A;
+    line-height: 1.35;
+  }
+
+  /* ── 6. Spacing & Radius ─────────────────────────────── */
+  .spacing-radius-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+  }
+
+  .spacing-scale {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .spacing-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .spacing-bar-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #C8C4BC;
+    min-width: 42px;
+    text-align: right;
+  }
+
+  .spacing-bar {
+    height: 24px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #E8634A 0%, #E8A838 50%, #FFD093 100%);
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+  }
+
+  .spacing-bar:hover {
+    opacity: 1;
+  }
+
+  .radius-demos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-end;
+  }
+
+  .radius-demo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .radius-shape {
+    background: #EDEAE5;
+    border: 2px solid #C8C4BC;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .radius-shape .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #0D1B2A;
+  }
+
+  .radius-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #C8C4BC;
+    text-align: center;
+  }
+
+  /* ── 7. Shadow Scale ─────────────────────────────────── */
+  .shadow-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+  }
+
+  .shadow-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 40px 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    transition: transform 0.2s ease;
+  }
+
+  .shadow-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .shadow-sm {
+    box-shadow: 0 1px 3px rgba(13,27,42,0.06), 0 1px 2px rgba(13,27,42,0.04);
+  }
+
+  .shadow-md {
+    box-shadow: 0 4px 16px rgba(13,27,42,0.08), 0 2px 4px rgba(13,27,42,0.04);
+  }
+
+  .shadow-lg {
+    box-shadow: 0 12px 40px rgba(13,27,42,0.12), 0 4px 12px rgba(13,27,42,0.06);
+  }
+
+  .shadow-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #0D1B2A;
+    font-weight: 400;
+  }
+
+  .shadow-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #C8C4BC;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  /* ── Footer ──────────────────────────────────────────── */
+  .footer {
+    margin-top: 96px;
+    padding-top: 32px;
+    border-top: 1px solid #EDEAE5;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-left {
+    font-family: 'Instrument Serif', serif;
+    font-size: 18px;
+    color: #0D1B2A;
+  }
+
+  .footer-right {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #C8C4BC;
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- 1. HEADER                                          -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <header class="header">
+    <h1>MirrorChat — Brand System</h1>
+    <div class="header-line"></div>
+    <p class="header-sub">Visual identity reference &middot; Anti-manipulation app for Italian teenagers</p>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- 2. COLOR PALETTE                                   -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section class="section">
+    <p class="section-label">01 &mdash; Palette</p>
+    <h2 class="section-title">Core Colors</h2>
+
+    <div class="palette-grid">
+
+      <div class="swatch">
+        <div class="swatch-color" style="background:#0D1B2A;">
+          <span class="hex" style="color:#fff;">#0D1B2A</span>
+        </div>
+        <span class="swatch-name">Midnight</span>
+        <span class="swatch-hex-label">#0D1B2A</span>
+      </div>
+
+      <div class="swatch">
+        <div class="swatch-color" style="background:#1B3A4B;">
+          <span class="hex" style="color:#fff;">#1B3A4B</span>
+        </div>
+        <span class="swatch-name">Deep Sea</span>
+        <span class="swatch-hex-label">#1B3A4B</span>
+      </div>
+
+      <div class="swatch">
+        <div class="swatch-color" style="background:#FAF8F5; border:1px solid #EDEAE5;">
+          <span class="hex" style="color:#0D1B2A;">#FAF8F5</span>
+        </div>
+        <span class="swatch-name">Dawn Cream</span>
+        <span class="swatch-hex-label">#FAF8F5</span>
+      </div>
+
+      <div class="swatch">
+        <div class="swatch-color" style="background:#EDEAE5; border:1px solid #C8C4BC;">
+          <span class="hex" style="color:#0D1B2A;">#EDEAE5</span>
+        </div>
+        <span class="swatch-name">Mist</span>
+        <span class="swatch-hex-label">#EDEAE5</span>
+      </div>
+
+      <div class="swatch">
+        <div class="swatch-color" style="background:#C8C4BC;">
+          <span class="hex" style="color:#0D1B2A;">#C8C4BC</span>
+        </div>
+        <span class="swatch-name">Fog</span>
+        <span class="swatch-hex-label">#C8C4BC</span>
+      </div>
+
+      <div class="swatch">
+        <div class="swatch-color" style="background:#E8634A;">
+          <span class="hex" style="color:#fff;">#E8634A</span>
+        </div>
+        <span class="swatch-name">Coral Glow</span>
+        <span class="swatch-hex-label">#E8634A</span>
+      </div>
+
+      <div class="swatch">
+        <div class="swatch-color" style="background:#E8A838;">
+          <span class="hex" style="color:#fff;">#E8A838</span>
+        </div>
+        <span class="swatch-name">Amber Warm</span>
+        <span class="swatch-hex-label">#E8A838</span>
+      </div>
+
+      <div class="swatch">
+        <div class="swatch-color" style="background:#5B9A8B;">
+          <span class="hex" style="color:#fff;">#5B9A8B</span>
+        </div>
+        <span class="swatch-name">Sage Safe</span>
+        <span class="swatch-hex-label">#5B9A8B</span>
+      </div>
+
+      <div class="swatch">
+        <div class="swatch-color" style="background:#3D8B8B;">
+          <span class="hex" style="color:#fff;">#3D8B8B</span>
+        </div>
+        <span class="swatch-name">Teal Clarity</span>
+        <span class="swatch-hex-label">#3D8B8B</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- 3. GRADIENTS                                       -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section class="section">
+    <p class="section-label">02 &mdash; Gradients</p>
+    <h2 class="section-title">Key Gradients</h2>
+
+    <div class="gradient-bar gradient-aurora">
+      <span class="label">Aurora</span>
+      <span class="css-value">135deg &middot; #E8634A &rarr; #E8A838 &rarr; #FFD093</span>
+    </div>
+
+    <div class="gradient-bar gradient-calm">
+      <span class="label">Calm</span>
+      <span class="css-value">135deg &middot; #5B9A8B &rarr; #3D8B8B</span>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- 4. TYPOGRAPHY SPECIMEN                             -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section class="section">
+    <p class="section-label">03 &mdash; Typography</p>
+    <h2 class="section-title">Type Specimen</h2>
+
+    <!-- Instrument Serif -->
+    <div class="type-family">
+      <p class="type-family-name">Instrument Serif &middot; 400</p>
+
+      <div class="type-sample type-serif">
+        <span class="size-label">48 px</span>
+        <span class="text" style="font-size:48px; line-height:1.15;">Lo specchio che rivela</span>
+      </div>
+      <div class="type-sample type-serif">
+        <span class="size-label">32 px</span>
+        <span class="text" style="font-size:32px; line-height:1.2;">Lo specchio che rivela</span>
+      </div>
+      <div class="type-sample type-serif">
+        <span class="size-label">24 px</span>
+        <span class="text" style="font-size:24px; line-height:1.3;">Lo specchio che rivela</span>
+      </div>
+    </div>
+
+    <!-- Instrument Sans -->
+    <div class="type-family">
+      <p class="type-family-name">Instrument Sans &middot; 400 / 500 / 600</p>
+
+      <div class="type-sample type-sans">
+        <span class="size-label">24 px</span>
+        <span class="text" style="font-size:24px; font-weight:400;">Analizza un messaggio che ti ha fatto stare male</span>
+        <span class="weight-label">Regular 400</span>
+      </div>
+      <div class="type-sample type-sans">
+        <span class="size-label">24 px</span>
+        <span class="text" style="font-size:24px; font-weight:500;">Analizza un messaggio che ti ha fatto stare male</span>
+        <span class="weight-label">Medium 500</span>
+      </div>
+      <div class="type-sample type-sans">
+        <span class="size-label">24 px</span>
+        <span class="text" style="font-size:24px; font-weight:600;">Analizza un messaggio che ti ha fatto stare male</span>
+        <span class="weight-label">SemiBold 600</span>
+      </div>
+
+      <div style="height:20px;"></div>
+
+      <div class="type-sample type-sans">
+        <span class="size-label">18 px</span>
+        <span class="text" style="font-size:18px; font-weight:400;">Analizza un messaggio che ti ha fatto stare male</span>
+        <span class="weight-label">400</span>
+      </div>
+      <div class="type-sample type-sans">
+        <span class="size-label">18 px</span>
+        <span class="text" style="font-size:18px; font-weight:500;">Analizza un messaggio che ti ha fatto stare male</span>
+        <span class="weight-label">500</span>
+      </div>
+      <div class="type-sample type-sans">
+        <span class="size-label">18 px</span>
+        <span class="text" style="font-size:18px; font-weight:600;">Analizza un messaggio che ti ha fatto stare male</span>
+        <span class="weight-label">600</span>
+      </div>
+
+      <div style="height:20px;"></div>
+
+      <div class="type-sample type-sans">
+        <span class="size-label">16 px</span>
+        <span class="text" style="font-size:16px; font-weight:400;">Analizza un messaggio che ti ha fatto stare male</span>
+        <span class="weight-label">400</span>
+      </div>
+      <div class="type-sample type-sans">
+        <span class="size-label">16 px</span>
+        <span class="text" style="font-size:16px; font-weight:500;">Analizza un messaggio che ti ha fatto stare male</span>
+        <span class="weight-label">500</span>
+      </div>
+      <div class="type-sample type-sans">
+        <span class="size-label">16 px</span>
+        <span class="text" style="font-size:16px; font-weight:600;">Analizza un messaggio che ti ha fatto stare male</span>
+        <span class="weight-label">600</span>
+      </div>
+
+      <div style="height:20px;"></div>
+
+      <div class="type-sample type-sans">
+        <span class="size-label">14 px</span>
+        <span class="text" style="font-size:14px; font-weight:400;">Analizza un messaggio che ti ha fatto stare male</span>
+        <span class="weight-label">400</span>
+      </div>
+      <div class="type-sample type-sans">
+        <span class="size-label">14 px</span>
+        <span class="text" style="font-size:14px; font-weight:500;">Analizza un messaggio che ti ha fatto stare male</span>
+        <span class="weight-label">500</span>
+      </div>
+      <div class="type-sample type-sans">
+        <span class="size-label">14 px</span>
+        <span class="text" style="font-size:14px; font-weight:600;">Analizza un messaggio che ti ha fatto stare male</span>
+        <span class="weight-label">600</span>
+      </div>
+    </div>
+
+    <!-- JetBrains Mono -->
+    <div class="type-family">
+      <p class="type-family-name">JetBrains Mono &middot; 400</p>
+
+      <div class="type-sample type-mono">
+        <span class="size-label">14 px</span>
+        <span class="text" style="font-size:14px;">[PERSONA_1] ti ha scritto alle [DATA]...</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- 5. SEVERITY SYSTEM                                 -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section class="section">
+    <p class="section-label">04 &mdash; Severity</p>
+    <h2 class="section-title">Severity Levels</h2>
+
+    <div class="severity-row">
+
+      <div class="severity-item">
+        <span class="severity-level">Livello 1</span>
+        <div class="severity-circle" style="background:#5B9A8B;"></div>
+        <span class="severity-label">Comunicazione sana</span>
+      </div>
+
+      <div class="severity-item">
+        <span class="severity-level">Livello 2</span>
+        <div class="severity-circle" style="background:#7DB8A8;"></div>
+        <span class="severity-label">Segnale lieve</span>
+      </div>
+
+      <div class="severity-item">
+        <span class="severity-level">Livello 3</span>
+        <div class="severity-circle" style="background:#E8A838;"></div>
+        <span class="severity-label">Attenzione</span>
+      </div>
+
+      <div class="severity-item">
+        <span class="severity-level">Livello 4</span>
+        <div class="severity-circle glow" style="background:#E8634A;"></div>
+        <span class="severity-label">Manipolazione</span>
+      </div>
+
+      <div class="severity-item">
+        <span class="severity-level">Livello 5</span>
+        <div class="severity-circle pulse" style="background:#C14433;"></div>
+        <span class="severity-label">Pericolo</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- 6. SPACING & RADIUS                                -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section class="section">
+    <p class="section-label">05 &mdash; Spacing &amp; Radius</p>
+    <h2 class="section-title">Spatial System</h2>
+
+    <div class="spacing-radius-grid">
+
+      <!-- Spacing Scale -->
+      <div>
+        <p class="type-family-name" style="margin-bottom:20px;">Spacing Scale</p>
+        <div class="spacing-scale">
+          <div class="spacing-bar-row">
+            <span class="spacing-bar-label">4 px</span>
+            <div class="spacing-bar" style="width:4px;"></div>
+          </div>
+          <div class="spacing-bar-row">
+            <span class="spacing-bar-label">8 px</span>
+            <div class="spacing-bar" style="width:8px;"></div>
+          </div>
+          <div class="spacing-bar-row">
+            <span class="spacing-bar-label">16 px</span>
+            <div class="spacing-bar" style="width:16px;"></div>
+          </div>
+          <div class="spacing-bar-row">
+            <span class="spacing-bar-label">24 px</span>
+            <div class="spacing-bar" style="width:24px;"></div>
+          </div>
+          <div class="spacing-bar-row">
+            <span class="spacing-bar-label">40 px</span>
+            <div class="spacing-bar" style="width:40px;"></div>
+          </div>
+          <div class="spacing-bar-row">
+            <span class="spacing-bar-label">64 px</span>
+            <div class="spacing-bar" style="width:64px;"></div>
+          </div>
+          <div class="spacing-bar-row">
+            <span class="spacing-bar-label">96 px</span>
+            <div class="spacing-bar" style="width:96px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Radius Options -->
+      <div>
+        <p class="type-family-name" style="margin-bottom:20px;">Border Radius</p>
+        <div class="radius-demos">
+          <div class="radius-demo">
+            <div class="radius-shape" style="width:80px; height:80px; border-radius:16px;">
+              <span class="val">16px</span>
+            </div>
+            <span class="radius-label">Card</span>
+          </div>
+          <div class="radius-demo">
+            <div class="radius-shape" style="width:80px; height:44px; border-radius:12px;">
+              <span class="val">12px</span>
+            </div>
+            <span class="radius-label">Button</span>
+          </div>
+          <div class="radius-demo">
+            <div class="radius-shape" style="width:120px; height:40px; border-radius:100px;">
+              <span class="val">100px</span>
+            </div>
+            <span class="radius-label">Pill</span>
+          </div>
+          <div class="radius-demo">
+            <div class="radius-shape" style="width:56px; height:56px; border-radius:50%;">
+              <span class="val">50%</span>
+            </div>
+            <span class="radius-label">Circle</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- 7. SHADOW SCALE                                    -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section class="section">
+    <p class="section-label">06 &mdash; Elevation</p>
+    <h2 class="section-title">Shadow Scale</h2>
+
+    <div class="shadow-row">
+
+      <div class="shadow-card shadow-sm">
+        <span class="shadow-label">shadow-sm</span>
+        <span class="shadow-value">0 1px 3px rgba(13,27,42,0.06)<br>0 1px 2px rgba(13,27,42,0.04)</span>
+      </div>
+
+      <div class="shadow-card shadow-md">
+        <span class="shadow-label">shadow-md</span>
+        <span class="shadow-value">0 4px 16px rgba(13,27,42,0.08)<br>0 2px 4px rgba(13,27,42,0.04)</span>
+      </div>
+
+      <div class="shadow-card shadow-lg">
+        <span class="shadow-label">shadow-lg</span>
+        <span class="shadow-value">0 12px 40px rgba(13,27,42,0.12)<br>0 4px 12px rgba(13,27,42,0.06)</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- FOOTER                                             -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <footer class="footer">
+    <span class="footer-left">MirrorChat</span>
+    <span class="footer-right">Brand System v1.0 &middot; 2026</span>
+  </footer>
+
+</div>
+
+</body>
+</html>

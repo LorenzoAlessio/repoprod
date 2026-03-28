@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MirrorChat App Showcase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: linear-gradient(135deg,
+      rgba(232, 99, 74, 0.03) 0%,
+      rgba(250, 248, 245, 1) 20%,
+      rgba(232, 168, 56, 0.03) 40%,
+      rgba(250, 248, 245, 1) 60%,
+      rgba(91, 154, 139, 0.03) 80%,
+      rgba(250, 248, 245, 1) 100%
+    );
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 0 80px;
+    font-family: 'Instrument Sans', sans-serif;
+  }
+
+  .title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 36px;
+    font-weight: 400;
+    color: #0D1B2A;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  .title-line {
+    width: 200px;
+    height: 2px;
+    margin: 0 auto 60px;
+    background: linear-gradient(90deg, #E8634A, #E8A838, #5B9A8B, #0D1B2A);
+    border-radius: 2px;
+  }
+
+  .phones-row {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 60px;
+  }
+
+  .phone-wrapper {
+    flex-shrink: 0;
+  }
+
+  .phone-wrapper:nth-child(1) { transform: rotate(-3deg); }
+  .phone-wrapper:nth-child(2) { transform: rotate(-1deg); }
+  .phone-wrapper:nth-child(3) { transform: rotate(1deg); }
+  .phone-wrapper:nth-child(4) { transform: rotate(3deg); }
+
+  .phone {
+    width: 240px;
+    height: 520px;
+    background: #fff;
+    border-radius: 24px;
+    border: 2px solid #E0DDD8;
+    box-shadow: 0 4px 16px rgba(13, 27, 42, 0.08), 0 1px 4px rgba(13, 27, 42, 0.04);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .phone-label {
+    text-align: center;
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #7C7C8A;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 14px;
+  }
+
+  /* Shared phone internals */
+  .phone-nav {
+    height: 44px;
+    background: #0D1B2A;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 8px;
+  }
+
+  .nav-logo {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #E8634A, #E8A838, #5B9A8B);
+  }
+
+  .nav-text {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 9px;
+    font-weight: 600;
+    color: #FFFFFF;
+    letter-spacing: 0.5px;
+  }
+
+  .nav-dots {
+    margin-left: auto;
+    display: flex;
+    gap: 3px;
+  }
+
+  .nav-dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  .phone-body {
+    padding: 12px;
+    height: calc(100% - 44px);
+    overflow: hidden;
+  }
+
+  /* ============================================ */
+  /* PHONE 1 — LANDING */
+  /* ============================================ */
+  .landing-body {
+    background: #EDEAE5;
+  }
+
+  .landing-hero {
+    background: #FAF8F5;
+    border-radius: 8px;
+    padding: 14px 10px;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  .landing-hero-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 14px;
+    color: #0D1B2A;
+    margin-bottom: 4px;
+  }
+
+  .landing-hero-sub {
+    height: 4px;
+    width: 70%;
+    margin: 0 auto 8px;
+    background: rgba(13, 27, 42, 0.1);
+    border-radius: 2px;
+  }
+
+  .landing-hero-btn {
+    width: 80px;
+    height: 18px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #E8634A, #E8A838, #5B9A8B);
+    border-radius: 9px;
+  }
+
+  .landing-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .landing-card {
+    height: 36px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 8px;
+  }
+
+  .landing-card:nth-child(1) { background: rgba(232, 99, 74, 0.08); }
+  .landing-card:nth-child(2) { background: rgba(232, 168, 56, 0.08); }
+  .landing-card:nth-child(3) { background: rgba(91, 154, 139, 0.08); }
+
+  .landing-card-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .landing-card:nth-child(1) .landing-card-icon { background: rgba(232, 99, 74, 0.3); }
+  .landing-card:nth-child(2) .landing-card-icon { background: rgba(232, 168, 56, 0.3); }
+  .landing-card:nth-child(3) .landing-card-icon { background: rgba(91, 154, 139, 0.3); }
+
+  .landing-card-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+  }
+
+  .landing-card-line {
+    height: 3px;
+    background: rgba(13, 27, 42, 0.10);
+    border-radius: 1px;
+  }
+
+  .landing-card-line:first-child { width: 80%; }
+  .landing-card-line:last-child { width: 55%; }
+
+  .landing-steps {
+    background: #FAF8F5;
+    border-radius: 8px;
+    padding: 10px;
+  }
+
+  .landing-steps-title {
+    font-size: 8px;
+    font-weight: 600;
+    color: #0D1B2A;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .landing-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .landing-step-num {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #0D1B2A;
+    color: #fff;
+    font-size: 8px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .landing-step-line {
+    height: 3px;
+    background: rgba(13, 27, 42, 0.08);
+    border-radius: 1px;
+    flex: 1;
+  }
+
+  /* ============================================ */
+  /* PHONE 2 — CHAT ANALYSIS */
+  /* ============================================ */
+  .chat-body {
+    background: #FAF8F5;
+  }
+
+  .chat-textarea {
+    height: 60px;
+    border: 1.5px solid #D5D2CD;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .chat-textarea-line {
+    height: 3px;
+    background: rgba(13, 27, 42, 0.08);
+    border-radius: 1px;
+  }
+
+  .chat-textarea-line:nth-child(1) { width: 90%; }
+  .chat-textarea-line:nth-child(2) { width: 75%; }
+  .chat-textarea-line:nth-child(3) { width: 60%; }
+
+  .chat-preview {
+    height: 44px;
+    border: 1.5px dashed #C5C2BD;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .chat-preview-label {
+    font-size: 7px;
+    color: #A0A0A8;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .chat-button-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .chat-btn {
+    flex: 1;
+    height: 24px;
+    border-radius: 6px;
+    background: #E8634A;
+  }
+
+  .chat-btn:nth-child(2) {
+    background: rgba(232, 99, 74, 0.15);
+  }
+
+  .chat-results {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background: rgba(232, 168, 56, 0.06);
+    border-radius: 8px;
+  }
+
+  .chat-results-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #E8A838;
+    flex-shrink: 0;
+  }
+
+  .chat-results-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    padding-top: 4px;
+  }
+
+  .chat-results-line {
+    height: 3px;
+    background: rgba(13, 27, 42, 0.10);
+    border-radius: 1px;
+  }
+
+  .chat-results-line:nth-child(1) { width: 70%; }
+  .chat-results-line:nth-child(2) { width: 90%; }
+  .chat-results-line:nth-child(3) { width: 50%; }
+
+  .chat-banner {
+    height: 48px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(232, 99, 74, 0.12), rgba(232, 168, 56, 0.12));
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 8px;
+  }
+
+  .chat-banner-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(232, 99, 74, 0.25);
+    flex-shrink: 0;
+  }
+
+  .chat-banner-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+  }
+
+  .chat-banner-line {
+    height: 3px;
+    border-radius: 1px;
+  }
+
+  .chat-banner-line:nth-child(1) { width: 80%; background: rgba(232, 99, 74, 0.2); }
+  .chat-banner-line:nth-child(2) { width: 60%; background: rgba(232, 99, 74, 0.12); }
+
+  /* Extra results bars */
+  .chat-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+
+  .chat-bar {
+    height: 14px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    padding: 0 6px;
+  }
+
+  .chat-bar:nth-child(1) { background: rgba(232, 99, 74, 0.10); width: 85%; }
+  .chat-bar:nth-child(2) { background: rgba(91, 154, 139, 0.10); width: 65%; }
+  .chat-bar:nth-child(3) { background: rgba(232, 168, 56, 0.10); width: 45%; }
+
+  .chat-bar-inner {
+    height: 3px;
+    border-radius: 1px;
+    width: 50%;
+  }
+
+  .chat-bar:nth-child(1) .chat-bar-inner { background: rgba(232, 99, 74, 0.3); }
+  .chat-bar:nth-child(2) .chat-bar-inner { background: rgba(91, 154, 139, 0.3); }
+  .chat-bar:nth-child(3) .chat-bar-inner { background: rgba(232, 168, 56, 0.3); }
+
+  /* ============================================ */
+  /* PHONE 3 — SAFEVOICE */
+  /* ============================================ */
+  .safevoice-body {
+    background: #FAF8F5;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .safevoice-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 12px;
+    color: #0D1B2A;
+    margin-bottom: 4px;
+  }
+
+  .safevoice-sub {
+    height: 3px;
+    width: 70%;
+    background: rgba(13, 27, 42, 0.08);
+    border-radius: 1px;
+    margin-bottom: 14px;
+  }
+
+  .safevoice-field {
+    height: 32px;
+    border: 1.5px solid #D5D2CD;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+  }
+
+  .safevoice-field-label {
+    font-size: 7px;
+    color: #A0A0A8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .safevoice-field.textarea {
+    height: 80px;
+    align-items: flex-start;
+    padding-top: 10px;
+  }
+
+  .safevoice-aurora-btn {
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #E8634A, #E8A838, #5B9A8B);
+    margin-top: 6px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .safevoice-aurora-btn-text {
+    font-size: 8px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0.5px;
+  }
+
+  .safevoice-footer {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 10px;
+  }
+
+  .safevoice-footer-line {
+    height: 3px;
+    background: rgba(13, 27, 42, 0.06);
+    border-radius: 1px;
+  }
+
+  .safevoice-footer-line:nth-child(1) { width: 90%; }
+  .safevoice-footer-line:nth-child(2) { width: 70%; }
+  .safevoice-footer-line:nth-child(3) { width: 50%; }
+
+  .safevoice-shield {
+    width: 24px;
+    height: 24px;
+    margin: 10px auto 0;
+    background: rgba(91, 154, 139, 0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .safevoice-shield-inner {
+    width: 10px;
+    height: 12px;
+    background: rgba(91, 154, 139, 0.3);
+    border-radius: 3px 3px 50% 50%;
+  }
+
+  /* ============================================ */
+  /* PHONE 4 — EDUCATION */
+  /* ============================================ */
+  .edu-body {
+    background: #FAF8F5;
+  }
+
+  .edu-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 12px;
+    color: #0D1B2A;
+    margin-bottom: 4px;
+  }
+
+  .edu-sub {
+    height: 3px;
+    width: 60%;
+    background: rgba(13, 27, 42, 0.08);
+    border-radius: 1px;
+    margin-bottom: 12px;
+  }
+
+  .edu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .edu-card {
+    height: 60px;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid #EDEAE5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .edu-card-emoji {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+  }
+
+  .edu-card:nth-child(1) .edu-card-emoji { background: rgba(232, 99, 74, 0.25); }
+  .edu-card:nth-child(2) .edu-card-emoji { background: rgba(232, 168, 56, 0.25); }
+  .edu-card:nth-child(3) .edu-card-emoji { background: rgba(91, 154, 139, 0.25); }
+  .edu-card:nth-child(4) .edu-card-emoji { background: rgba(13, 27, 42, 0.15); }
+  .edu-card:nth-child(5) .edu-card-emoji { background: rgba(232, 99, 74, 0.20); }
+  .edu-card:nth-child(6) .edu-card-emoji { background: rgba(91, 154, 139, 0.20); }
+
+  .edu-card-text {
+    height: 3px;
+    width: 50px;
+    background: rgba(13, 27, 42, 0.08);
+    border-radius: 1px;
+  }
+
+  .edu-resources {
+    background: rgba(13, 27, 42, 0.03);
+    border-radius: 8px;
+    padding: 10px;
+  }
+
+  .edu-resources-title {
+    font-size: 8px;
+    font-weight: 600;
+    color: #0D1B2A;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .edu-resource-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .edu-resource-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(91, 154, 139, 0.3);
+    flex-shrink: 0;
+  }
+
+  .edu-resource-line {
+    height: 3px;
+    flex: 1;
+    background: rgba(13, 27, 42, 0.08);
+    border-radius: 1px;
+  }
+
+  /* ============================================ */
+  /* BOTTOM SECTION — Palette + Fonts */
+  /* ============================================ */
+  .bottom-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .palette-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .palette-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  }
+
+  .palette-label {
+    font-size: 9px;
+    color: #7C7C8A;
+    margin-top: 4px;
+    text-align: center;
+  }
+
+  .palette-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .fonts-row {
+    display: flex;
+    align-items: baseline;
+    gap: 32px;
+  }
+
+  .font-sample {
+    text-align: center;
+  }
+
+  .font-serif {
+    font-family: 'Instrument Serif', serif;
+    font-size: 18px;
+    color: #0D1B2A;
+  }
+
+  .font-sans {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #0D1B2A;
+  }
+
+  .font-label {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 9px;
+    color: #7C7C8A;
+    margin-top: 2px;
+  }
+
+  .divider-thin {
+    width: 100px;
+    height: 1px;
+    background: rgba(13, 27, 42, 0.08);
+  }
+</style>
+</head>
+<body>
+
+<h1 class="title">MirrorChat &mdash; App Overview</h1>
+<div class="title-line"></div>
+
+<div class="phones-row">
+
+  <!-- PHONE 1: LANDING -->
+  <div class="phone-wrapper">
+    <div class="phone">
+      <div class="phone-nav">
+        <div class="nav-logo"></div>
+        <span class="nav-text">MirrorChat</span>
+        <div class="nav-dots"><div class="nav-dot"></div><div class="nav-dot"></div><div class="nav-dot"></div></div>
+      </div>
+      <div class="phone-body landing-body">
+        <div class="landing-hero">
+          <div class="landing-hero-title">MirrorChat</div>
+          <div class="landing-hero-sub"></div>
+          <div class="landing-hero-btn"></div>
+        </div>
+        <div class="landing-cards">
+          <div class="landing-card">
+            <div class="landing-card-icon"></div>
+            <div class="landing-card-lines">
+              <div class="landing-card-line"></div>
+              <div class="landing-card-line"></div>
+            </div>
+          </div>
+          <div class="landing-card">
+            <div class="landing-card-icon"></div>
+            <div class="landing-card-lines">
+              <div class="landing-card-line"></div>
+              <div class="landing-card-line"></div>
+            </div>
+          </div>
+          <div class="landing-card">
+            <div class="landing-card-icon"></div>
+            <div class="landing-card-lines">
+              <div class="landing-card-line"></div>
+              <div class="landing-card-line"></div>
+            </div>
+          </div>
+        </div>
+        <div class="landing-steps">
+          <div class="landing-steps-title">How it works</div>
+          <div class="landing-step">
+            <div class="landing-step-num">1</div>
+            <div class="landing-step-line"></div>
+          </div>
+          <div class="landing-step">
+            <div class="landing-step-num">2</div>
+            <div class="landing-step-line"></div>
+          </div>
+          <div class="landing-step">
+            <div class="landing-step-num">3</div>
+            <div class="landing-step-line"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">Landing</div>
+  </div>
+
+  <!-- PHONE 2: CHAT ANALYSIS -->
+  <div class="phone-wrapper">
+    <div class="phone">
+      <div class="phone-nav">
+        <div class="nav-logo"></div>
+        <span class="nav-text">Analysis</span>
+        <div class="nav-dots"><div class="nav-dot"></div><div class="nav-dot"></div><div class="nav-dot"></div></div>
+      </div>
+      <div class="phone-body chat-body">
+        <div class="chat-textarea">
+          <div class="chat-textarea-line"></div>
+          <div class="chat-textarea-line"></div>
+          <div class="chat-textarea-line"></div>
+        </div>
+        <div class="chat-preview">
+          <span class="chat-preview-label">Anonymized Preview</span>
+        </div>
+        <div class="chat-button-bar">
+          <div class="chat-btn"></div>
+          <div class="chat-btn"></div>
+        </div>
+        <div class="chat-bars">
+          <div class="chat-bar"><div class="chat-bar-inner"></div></div>
+          <div class="chat-bar"><div class="chat-bar-inner"></div></div>
+          <div class="chat-bar"><div class="chat-bar-inner"></div></div>
+        </div>
+        <div class="chat-results">
+          <div class="chat-results-circle"></div>
+          <div class="chat-results-lines">
+            <div class="chat-results-line"></div>
+            <div class="chat-results-line"></div>
+            <div class="chat-results-line"></div>
+          </div>
+        </div>
+        <div class="chat-banner">
+          <div class="chat-banner-icon"></div>
+          <div class="chat-banner-lines">
+            <div class="chat-banner-line"></div>
+            <div class="chat-banner-line"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">Chat Analysis</div>
+  </div>
+
+  <!-- PHONE 3: SAFEVOICE -->
+  <div class="phone-wrapper">
+    <div class="phone">
+      <div class="phone-nav">
+        <div class="nav-logo"></div>
+        <span class="nav-text">SafeVoice</span>
+        <div class="nav-dots"><div class="nav-dot"></div><div class="nav-dot"></div><div class="nav-dot"></div></div>
+      </div>
+      <div class="phone-body safevoice-body">
+        <div class="safevoice-title">SafeVoice</div>
+        <div class="safevoice-sub"></div>
+        <div class="safevoice-field">
+          <span class="safevoice-field-label">Subject</span>
+        </div>
+        <div class="safevoice-field">
+          <span class="safevoice-field-label">Category</span>
+        </div>
+        <div class="safevoice-field textarea">
+          <span class="safevoice-field-label">Your message</span>
+        </div>
+        <div class="safevoice-aurora-btn">
+          <span class="safevoice-aurora-btn-text">Send Anonymously</span>
+        </div>
+        <div class="safevoice-footer">
+          <div class="safevoice-footer-line"></div>
+          <div class="safevoice-footer-line"></div>
+          <div class="safevoice-footer-line"></div>
+        </div>
+        <div class="safevoice-shield">
+          <div class="safevoice-shield-inner"></div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">SafeVoice</div>
+  </div>
+
+  <!-- PHONE 4: EDUCATION -->
+  <div class="phone-wrapper">
+    <div class="phone">
+      <div class="phone-nav">
+        <div class="nav-logo"></div>
+        <span class="nav-text">Learn</span>
+        <div class="nav-dots"><div class="nav-dot"></div><div class="nav-dot"></div><div class="nav-dot"></div></div>
+      </div>
+      <div class="phone-body edu-body">
+        <div class="edu-title">Understanding Patterns</div>
+        <div class="edu-sub"></div>
+        <div class="edu-grid">
+          <div class="edu-card">
+            <div class="edu-card-emoji"></div>
+            <div class="edu-card-text"></div>
+          </div>
+          <div class="edu-card">
+            <div class="edu-card-emoji"></div>
+            <div class="edu-card-text"></div>
+          </div>
+          <div class="edu-card">
+            <div class="edu-card-emoji"></div>
+            <div class="edu-card-text"></div>
+          </div>
+          <div class="edu-card">
+            <div class="edu-card-emoji"></div>
+            <div class="edu-card-text"></div>
+          </div>
+          <div class="edu-card">
+            <div class="edu-card-emoji"></div>
+            <div class="edu-card-text"></div>
+          </div>
+          <div class="edu-card">
+            <div class="edu-card-emoji"></div>
+            <div class="edu-card-text"></div>
+          </div>
+        </div>
+        <div class="edu-resources">
+          <div class="edu-resources-title">Resources</div>
+          <div class="edu-resource-item">
+            <div class="edu-resource-dot"></div>
+            <div class="edu-resource-line" style="width:85%"></div>
+          </div>
+          <div class="edu-resource-item">
+            <div class="edu-resource-dot"></div>
+            <div class="edu-resource-line" style="width:70%"></div>
+          </div>
+          <div class="edu-resource-item">
+            <div class="edu-resource-dot"></div>
+            <div class="edu-resource-line" style="width:60%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-label">Education</div>
+  </div>
+
+</div>
+
+<!-- Bottom section: palette + fonts -->
+<div class="bottom-section">
+  <div class="palette-row">
+    <div class="palette-item">
+      <div class="palette-circle" style="background: #0D1B2A;"></div>
+      <div class="palette-label">#0D1B2A</div>
+    </div>
+    <div class="palette-item">
+      <div class="palette-circle" style="background: #E8634A;"></div>
+      <div class="palette-label">#E8634A</div>
+    </div>
+    <div class="palette-item">
+      <div class="palette-circle" style="background: #E8A838;"></div>
+      <div class="palette-label">#E8A838</div>
+    </div>
+    <div class="palette-item">
+      <div class="palette-circle" style="background: #5B9A8B;"></div>
+      <div class="palette-label">#5B9A8B</div>
+    </div>
+    <div class="palette-item">
+      <div class="palette-circle" style="background: #FAF8F5;; border: 1px solid #E0DDD8;"></div>
+      <div class="palette-label">#FAF8F5</div>
+    </div>
+    <div class="palette-item">
+      <div class="palette-circle" style="background: #EDEAE5; border: 1px solid #D5D2CD;"></div>
+      <div class="palette-label">#EDEAE5</div>
+    </div>
+  </div>
+
+  <div class="divider-thin"></div>
+
+  <div class="fonts-row">
+    <div class="font-sample">
+      <div class="font-serif">Instrument Serif</div>
+      <div class="font-label">Headings</div>
+    </div>
+    <div class="font-sample">
+      <div class="font-sans">Instrument Sans</div>
+      <div class="font-label">Body &amp; UI</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
