@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { to: '/voice',     icon: '🎤', label: 'SafeVoice' },
   { to: '/learn',     icon: '📚', label: 'Impara' },
   { to: '/settings',  icon: '⚙️', label: 'Impostazioni' },
+  { to: '/profile',   icon: '🛡️', label: 'Il mio profilo' },
 ]
 
 export default function Sidebar({ open, onClose }) {

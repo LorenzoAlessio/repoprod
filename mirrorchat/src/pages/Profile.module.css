@@ -1,0 +1,168 @@
+.container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+}
+.header { margin-bottom: 24px; }
+.label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fog);
+  margin-bottom: 8px;
+}
+.title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 2rem;
+  color: var(--midnight);
+}
+
+/* Info card */
+.infoCard {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  background: rgba(91, 154, 139, 0.08);
+  border-left: 3px solid var(--sage-safe);
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+.infoIcon { font-size: 1.5rem; flex-shrink: 0; margin-top: 2px; }
+.infoTitle { font-weight: 600; font-size: 0.9375rem; color: var(--midnight); margin-bottom: 6px; }
+.infoText { font-size: 0.8125rem; color: var(--deep-sea); line-height: 1.5; margin-bottom: 10px; }
+.infoList { font-size: 0.8125rem; color: var(--deep-sea); line-height: 1.8; padding-left: 18px; }
+
+/* Empty state */
+.emptyState {
+  text-align: center;
+  padding: 48px 24px;
+  background: var(--dawn-cream);
+  border-radius: 16px;
+  border: 1px solid var(--mist);
+}
+.emptyText { font-size: 0.9375rem; color: var(--fog); margin-bottom: 16px; }
+.emptyLink { color: var(--teal-clarity); font-weight: 600; text-decoration: none; }
+.emptyLink:hover { text-decoration: underline; }
+
+/* Scheda card */
+.schedaCard {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(13,27,42,0.06);
+  margin-bottom: 16px;
+}
+.schedaTitle { font-weight: 600; font-size: 1rem; color: var(--midnight); margin-bottom: 16px; }
+.schedaContent { display: flex; flex-direction: column; gap: 6px; }
+.schedaLine { font-size: 0.875rem; color: var(--deep-sea); line-height: 1.5; padding-left: 8px; border-left: 2px solid var(--mist); }
+.schedaMeta { font-size: 0.75rem; color: var(--fog); margin-top: 16px; }
+
+/* Narrative sections */
+.narrativeCard {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(13,27,42,0.06);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+.narrativeHeader {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--midnight);
+}
+.narrativeHeader:hover { background: var(--dawn-cream); }
+.chevron { font-size: 0.75rem; color: var(--fog); }
+.narrativeContent { padding: 0 20px 16px; font-size: 0.875rem; color: var(--deep-sea); line-height: 1.6; }
+
+/* Facts (pre-consolidation) */
+.factsCard {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(13,27,42,0.06);
+  margin-bottom: 16px;
+}
+.factsTitle { font-weight: 600; font-size: 0.9375rem; color: var(--midnight); margin-bottom: 4px; }
+.factsNote { font-size: 0.8125rem; color: var(--fog); margin-bottom: 12px; }
+.factsList { display: flex; flex-wrap: wrap; gap: 6px; }
+.factPill {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--teal-clarity);
+  background: rgba(61,139,139,0.1);
+  padding: 4px 12px;
+  border-radius: 100px;
+}
+
+/* Edit */
+.editSection { margin-bottom: 24px; }
+.editArea {
+  width: 100%;
+  min-height: 300px;
+  padding: 16px;
+  border: 1.5px solid var(--mist);
+  border-radius: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8125rem;
+  color: var(--midnight);
+  line-height: 1.6;
+  resize: vertical;
+  margin-bottom: 12px;
+}
+.editArea:focus { border-color: var(--teal-clarity); outline: none; }
+.editButtons { display: flex; gap: 12px; justify-content: flex-end; }
+
+/* Actions */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--mist);
+}
+.btnPrimary, .btnSecondary, .btnDanger {
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+}
+.btnPrimary { background: var(--teal-clarity); color: #fff; }
+.btnSecondary { background: var(--mist); color: var(--midnight); }
+.btnDanger { background: rgba(232,99,74,0.1); color: var(--coral-glow); }
+.btnDanger:hover { background: rgba(232,99,74,0.2); }
+
+/* Modal */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(13,27,42,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+.modalCard {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 12px 40px rgba(13,27,42,0.15);
+}
+.modalTitle { font-weight: 600; font-size: 1.125rem; color: var(--midnight); margin-bottom: 8px; }
+.modalText { font-size: 0.875rem; color: var(--deep-sea); line-height: 1.5; margin-bottom: 20px; }
+.modalButtons { display: flex; gap: 12px; justify-content: flex-end; }
