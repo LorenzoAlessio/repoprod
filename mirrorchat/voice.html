@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeVoice — MirrorChat</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <header class="nav-header">
+    <a href="index.html" class="logo">MirrorChat</a>
+    <nav class="main-nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="chat.html" class="nav-link">Analisi Chat</a>
+      <a href="voice.html" class="nav-link active" aria-current="page">SafeVoice</a>
+      <a href="learn.html" class="nav-link">Impara</a>
+    </nav>
+  </header>
+
+  <main class="page-container">
+
+    <!-- STATO INATTIVO -->
+    <section id="state-inactive">
+      <div class="hero-section">
+        <h1 class="section-title">SafeVoice</h1>
+        <p class="section-subtitle">Protezione in tempo reale. Ascolta la conversazione, rileva il pericolo e ti avvisa.</p>
+      </div>
+
+      <div id="no-speech-warning" class="error-message" hidden>
+        Il tuo browser non supporta il riconoscimento vocale. Usa Chrome o Edge per questa funzione.
+      </div>
+
+      <form id="person-form" class="person-form">
+        <label for="person-name">Con chi sei?</label>
+        <input type="text" id="person-name" placeholder="Nome o soprannome" required>
+
+        <label for="person-relation">Relazione</label>
+        <select id="person-relation" required>
+          <option value="" disabled selected>Seleziona...</option>
+          <option value="partner">Partner</option>
+          <option value="ex">Ex partner</option>
+          <option value="familiare">Familiare</option>
+          <option value="amicizia">Amicizia</option>
+          <option value="conoscente">Conoscente</option>
+          <option value="altro">Altro</option>
+        </select>
+
+        <label for="person-notes">Note (facoltativo)</label>
+        <textarea id="person-notes" rows="2" placeholder="Contesto utile per l'analisi..."></textarea>
+
+        <button type="submit" class="btn btn-primary btn-activate">ATTIVA SAFEVOICE</button>
+      </form>
+
+      <p class="privacy-note">I tuoi dati restano sul tuo dispositivo. L'audio non viene registrato: viene trascritto in tempo reale e analizzato, poi cancellato.</p>
+    </section>
+
+    <!-- STATO ATTIVO -->
+    <section id="state-active" hidden>
+      <div class="active-header">
+        <span id="voice-status" class="voice-status recording">In ascolto...</span>
+        <button id="btn-deactivate" class="btn btn-secondary" type="button">Disattiva</button>
+      </div>
+
+      <div class="danger-meter">
+        <label class="danger-label">Livello pericolo</label>
+        <div class="danger-bar">
+          <div id="danger-fill" class="danger-fill" data-level="1"></div>
+        </div>
+        <span id="danger-text" class="danger-text">1/5 — Normale</span>
+      </div>
+
+      <div class="transcript-section">
+        <h2 class="transcript-title">Trascrizione live</h2>
+        <div id="transcript-live" class="transcript-live"></div>
+      </div>
+
+      <div id="analysis-result" class="analysis-result" hidden>
+        <h3>Ultima analisi</h3>
+        <p id="analysis-motivo"></p>
+      </div>
+    </section>
+
+    <!-- STATO ALERT (countdown overlay) -->
+    <div id="state-alert" class="countdown-overlay" hidden>
+      <p>Pericolo rilevato</p>
+      <span id="countdown-number" class="countdown-number">30</span>
+      <p>Segnalazione automatica tra pochi secondi</p>
+      <button id="btn-cancel-alert" class="btn btn-secondary" type="button">Tocca per annullare</button>
+    </div>
+
+    <!-- STATO ESCALATION -->
+    <section id="state-escalation" hidden>
+      <div class="escalation-box">
+        <h2 class="section-title">Segnalazione inviata</h2>
+        <p class="section-subtitle">I seguenti dati sono stati preparati per l'emergenza.</p>
+
+        <div class="escalation-detail">
+          <h3>Posizione</h3>
+          <p id="esc-position">Rilevamento in corso...</p>
+        </div>
+        <div class="escalation-detail">
+          <h3>Persona coinvolta</h3>
+          <p id="esc-person"></p>
+        </div>
+        <div class="escalation-detail">
+          <h3>Sintesi emergenza</h3>
+          <p id="esc-summary"></p>
+        </div>
+
+        <a href="tel:112" class="btn btn-primary btn-emergency">Chiama 112</a>
+        <a href="tel:1522" class="btn btn-secondary btn-emergency">Chiama 1522</a>
+
+        <button id="btn-reset" class="btn btn-secondary" type="button">Torna alla home</button>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="js/anonymizer.js"></script>
+  <script src="js/voiceApi.js"></script>
+  <script src="js/speech.js"></script>
+  <script src="js/safevoice.js"></script>
+  <script src="js/voice.js"></script>
+</body>
+</html>
