@@ -481,6 +481,58 @@ select.input { cursor: pointer; }
   line-height: 1.5;
 }
 
+/* ── Gender options ──────────────────────────────────────── */
+.genderOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.genderOption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1.5px solid var(--mist);
+  background: var(--dawn-cream);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  font-size: 0.9375rem;
+  color: var(--midnight);
+}
+.genderOption:hover {
+  border-color: var(--fog);
+}
+.genderActive {
+  border-color: var(--teal-clarity);
+  background: rgba(61, 139, 139, 0.06);
+}
+.genderOption input[type="radio"] {
+  accent-color: var(--teal-clarity);
+}
+
+/* ── Card (generic) ─────────────────────────────────────── */
+.card {
+  padding: var(--space-5);
+  background: white;
+  border: 1px solid var(--mist);
+  border-radius: var(--radius-xl);
+}
+
+.cardTitle {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  color: var(--midnight);
+  margin-bottom: var(--space-2);
+}
+
+.cardDesc {
+  font-size: 14px;
+  color: var(--fog);
+  line-height: 1.6;
+  margin-bottom: var(--space-4);
+}
+
 /* ── Existing styles ──────────────────────────────────────── */
 @media (max-width: 640px) {
   .page { padding-top: var(--space-4); }

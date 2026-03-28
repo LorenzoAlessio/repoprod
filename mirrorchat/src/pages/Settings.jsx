@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react'
 import styles from './Settings.module.css'
 
+export function getStoredGender() {
+  return localStorage.getItem('mirrorchat_genere') || 'non_specificato';
+}
+
 const ANON_METHODS = [
   {
     id: 'python',
@@ -36,6 +40,7 @@ export default function Settings() {
   const [newContact, setNewContact] = useState({ ...BLANK_CONTACT })
   const [contactError, setContactError] = useState('')
   const [shortcut, setShortcut] = useState(localStorage.getItem('mirrorShortcut') || 'button')
+  const [genere, setGenere] = useState(localStorage.getItem('mirrorchat_genere') || 'non_specificato')
 
   async function saveContacts(updated) {
     setContacts(updated)
@@ -111,6 +116,39 @@ export default function Settings() {
           </div>
         </section>
       )}
+
+      {/* ── Genere ── */}
+      <section className={`${styles.section} page-enter`}>
+        <span className="section-label">Il tuo genere</span>
+        <div className={styles.card}>
+          <h2 className={styles.cardTitle}>Il tuo genere</h2>
+          <p className={styles.cardDesc}>
+            Aiuta l'AI a contestualizzare le dinamiche relazionali. Non viene mai associato ai tuoi dati personali.
+          </p>
+          <div className={styles.genderOptions}>
+            {[
+              { value: 'donna', label: 'Donna' },
+              { value: 'uomo', label: 'Uomo' },
+              { value: 'non-binario', label: 'Non-binario' },
+              { value: 'non_specificato', label: 'Preferisco non specificare' },
+            ].map(opt => (
+              <label key={opt.value} className={`${styles.genderOption} ${genere === opt.value ? styles.genderActive : ''}`}>
+                <input
+                  type="radio"
+                  name="genere"
+                  value={opt.value}
+                  checked={genere === opt.value}
+                  onChange={() => {
+                    setGenere(opt.value);
+                    localStorage.setItem('mirrorchat_genere', opt.value);
+                  }}
+                />
+                <span>{opt.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ── Contatti di emergenza ── */}
       <section className={`${styles.section} page-enter page-enter--delay-1`}>

@@ -3,11 +3,11 @@
  * @param {string} message
  * @returns {Promise<{tecnica, traduzione, spiegazione, gravita, risposte, risorse}>}
  */
-export async function analyzeChat(message) {
+export async function analyzeChat(message, genereUtente = 'non_specificato', persone = {}) {
   const res = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message }),
+    body: JSON.stringify({ message, genere_utente: genereUtente, persone }),
   })
 
   if (!res.ok) {
