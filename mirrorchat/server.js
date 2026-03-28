@@ -134,6 +134,30 @@ function runPythonAnonymizer(text) {
   });
 }
 
+// Qwen NER via Ollama (local model for name extraction + gender)
+const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434/api/generate';
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'qwen2.5:1.5b';
+
+app.post('/api/qwen-ner', async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    if (!prompt || typeof prompt !== 'string') {
+      return res.status(400).json({ error: 'Campo "prompt" richiesto' });
+    }
+    const ollamaRes = await fetch(OLLAMA_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: OLLAMA_MODEL, prompt, stream: false })
+    });
+    if (!ollamaRes.ok) throw new Error(`Ollama HTTP ${ollamaRes.status}`);
+    const data = await ollamaRes.json();
+    res.json({ text: data.response || '' });
+  } catch (err) {
+    console.error('[/api/qwen-ner]', err.message);
+    res.status(500).json({ error: true, text: '' });
+  }
+});
+
 // ── API: Anonymize ────────────────────────────────────────────
 app.post('/api/anonymize', async function (req, res) {
   var text = req.body.text;
@@ -158,21 +182,39 @@ app.post('/api/anonymize', async function (req, res) {
 });
 
 // ── API: Chat analysis ────────────────────────────────────────
-app.post('/api/chat', async function (req, res) {
+app.post('/api/chat', async (req, res) => {
   try {
-    var message = req.body.message;
-    if (!message || typeof message !== 'string') {
+    const { message, genere_utente, persone } = req.body;
+    if (!message || typeof message !== 'string')
       return res.status(400).json({ error: 'Campo "message" richiesto' });
+
+    let systemPrompt = CHAT_SYSTEM;
+
+    const personeEntries = Object.entries(persone || {});
+    if (personeEntries.length > 0) {
+      systemPrompt += '\n\nPersone nella conversazione:';
+      for (const [token, genere] of personeEntries) {
+        systemPrompt += `\n- ${token}: ${genere}`;
+      }
     }
-    var data = await callLLM(CHAT_SYSTEM, message);
-    res.json(data);
+
+    if (genere_utente && genere_utente !== 'non_specificato') {
+      systemPrompt += `\n\nL'utente che ha ricevuto il messaggio si identifica come: ${genere_utente}.`;
+    }
+
+    if (personeEntries.length > 0 || (genere_utente && genere_utente !== 'non_specificato')) {
+      systemPrompt += '\n\nUsa queste informazioni per contestualizzare le dinamiche relazionali, senza stereotipi.';
+    }
+
+    const result = await callLLM(systemPrompt, message);
+    res.json(result);
   } catch (err) {
     console.error('[/api/chat]', err);
     res.status(500).json({
       error: true,
       tecnica: 'Errore',
       traduzione: '',
-      spiegazione: 'Errore durante l\'analisi. Riprova tra qualche secondo.',
+      spiegazione: "Errore durante l'analisi. Riprova tra qualche secondo.",
       gravita: 0,
       risposte: [],
       risorse: false
