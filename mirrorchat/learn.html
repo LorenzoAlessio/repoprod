@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impara a riconoscere — MirrorChat</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <header class="nav-header">
+    <a href="index.html" class="logo">MirrorChat</a>
+    <nav class="main-nav">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="chat.html" class="nav-link">Analisi Chat</a>
+      <a href="voice.html" class="nav-link">SafeVoice</a>
+      <a href="learn.html" class="nav-link active" aria-current="page">Impara</a>
+    </nav>
+  </header>
+
+  <main class="page-container">
+
+    <section class="hero-section">
+      <h1 class="section-title">Impara a riconoscere</h1>
+      <p class="section-subtitle">Le tecniche manipolatorie pi&ugrave; comuni e come difenderti. Conoscerle &egrave; il primo passo.</p>
+    </section>
+
+    <section>
+      <div id="education-grid" class="education-grid"></div>
+    </section>
+
+    <section class="resources-section" id="resources-section">
+      <h2 class="section-title">Risorse e aiuto</h2>
+      <p class="section-subtitle">Non sei sola/o. Questi servizi sono gratuiti, anonimi e riservati.</p>
+      <div id="resources-container" class="resources-list-full"></div>
+    </section>
+
+  </main>
+
+  <script src="js/education.js"></script>
+  <script src="js/resources.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    var grid = document.getElementById('education-grid');
+    var resourcesContainer = document.getElementById('resources-container');
+
+    function renderEducationCards() {
+      if (typeof window.Education === 'undefined') return;
+      var cards = window.Education.getAll();
+
+      cards.forEach(function (card) {
+        var el = document.createElement('article');
+        el.className = 'education-card';
+        el.setAttribute('role', 'button');
+        el.setAttribute('tabindex', '0');
+        el.setAttribute('aria-expanded', 'false');
+
+        el.innerHTML =
+          '<div class="education-card-header">' +
+            '<span class="education-card-emoji">' + card.emoji + '</span>' +
+            '<h3>' + card.title + '</h3>' +
+          '</div>' +
+          '<p class="education-card-short">' + card.shortDesc + '</p>' +
+          '<div class="education-card-detail" hidden>' +
+            '<p class="education-card-long">' + card.longDesc + '</p>' +
+            '<div class="education-card-example">' +
+              '<strong>Esempio tipico:</strong> ' + card.example +
+            '</div>' +
+            '<div class="education-card-flags">' +
+              '<strong>Segnali da riconoscere:</strong>' +
+              '<ul>' + card.redFlags.map(function (f) { return '<li>' + f + '</li>'; }).join('') + '</ul>' +
+            '</div>' +
+          '</div>';
+
+        el.addEventListener('click', function () {
+          var detail = el.querySelector('.education-card-detail');
+          var expanded = el.getAttribute('aria-expanded') === 'true';
+          el.setAttribute('aria-expanded', String(!expanded));
+          detail.hidden = expanded;
+        });
+
+        el.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            el.click();
+          }
+        });
+
+        grid.appendChild(el);
+      });
+    }
+
+    function renderResources() {
+      if (typeof window.Resources === 'undefined') return;
+      var resources = window.Resources.getAll();
+
+      resources.forEach(function (r) {
+        var el = document.createElement('div');
+        el.className = 'resource-item';
+
+        var html = '<h3>' + r.nome + '</h3>';
+        if (r.number) {
+          html += '<span class="resource-number">' + r.number + '</span>';
+        }
+        html += '<p>' + r.description + '</p>';
+        html += '<a href="' + r.url + '" class="resource-link" target="_blank" rel="noopener">Contatta</a>';
+
+        el.innerHTML = html;
+        resourcesContainer.appendChild(el);
+      });
+    }
+
+    renderEducationCards();
+    renderResources();
+  })();
+  </script>
+</body>
+</html>
