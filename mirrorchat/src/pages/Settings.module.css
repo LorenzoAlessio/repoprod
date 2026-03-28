@@ -182,6 +182,309 @@
   color: rgba(200,196,188,0.2);
 }
 
+/* ── Profile card ─────────────────────────────────────────── */
+.profileCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: white;
+  border: 1.5px solid var(--mist);
+  border-radius: var(--radius-lg);
+}
+
+.profileAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-circle);
+  background: var(--gradient-aurora);
+  color: white;
+  font-size: 20px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profileName {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--midnight);
+}
+
+.profilePhone {
+  font-size: 13px;
+  color: var(--fog);
+  font-family: var(--font-mono);
+  margin-top: 2px;
+}
+
+.btnLogout {
+  margin-left: auto;
+  padding: 6px 14px;
+  background: none;
+  border: 1px solid var(--mist);
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  color: var(--fog);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+  white-space: nowrap;
+}
+.btnLogout:hover { border-color: var(--coral-glow); color: var(--coral-glow); }
+
+/* ── Section desc ─────────────────────────────────────────── */
+.sectionDesc {
+  font-size: 14px;
+  color: var(--fog);
+  line-height: 1.6;
+}
+
+/* ── Contact list ─────────────────────────────────────────── */
+.contactList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 12px var(--space-3);
+  background: white;
+  border: 1.5px solid var(--mist);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast);
+}
+.contactItem:hover { border-color: var(--fog); }
+
+.contactPriority {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-circle);
+  background: var(--gradient-aurora);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.contactInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.contactName {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--midnight);
+}
+
+.contactMeta {
+  display: block;
+  font-size: 12px;
+  color: var(--fog);
+  font-family: var(--font-mono);
+  margin-top: 2px;
+}
+
+.contactActions {
+  display: flex;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.btnOrder {
+  width: 28px;
+  height: 28px;
+  background: var(--dawn-cream);
+  border: 1px solid var(--mist);
+  border-radius: var(--radius-sm);
+  color: var(--fog);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+.btnOrder:hover:not(:disabled) { background: var(--mist); color: var(--deep-sea); }
+.btnOrder:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.btnRemove {
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: 1px solid var(--mist);
+  border-radius: var(--radius-sm);
+  color: var(--fog);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+}
+.btnRemove:hover { color: var(--coral-glow); border-color: var(--coral-glow); background: rgba(232,99,74,0.06); }
+
+.emptyContacts {
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--fog);
+  font-size: 14px;
+  background: var(--dawn-cream);
+  border: 1px dashed var(--fog);
+  border-radius: var(--radius-md);
+}
+
+/* ── Add form ─────────────────────────────────────────────── */
+.addForm {
+  padding: var(--space-4);
+  background: var(--dawn-cream);
+  border: 1.5px dashed var(--fog);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.addFormTitle {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fog);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.input {
+  width: 100%;
+  padding: 10px 14px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--midnight);
+  background: white;
+  border: 1.5px solid var(--mist);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+.input:focus { border-color: var(--sage-safe); }
+
+select.input { cursor: pointer; }
+
+.fieldError {
+  font-size: 13px;
+  color: var(--coral-glow);
+}
+
+.formBtns {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.btnAdd {
+  padding: 9px 20px;
+  background: var(--midnight);
+  color: white;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+.btnAdd:disabled { opacity: 0.5; cursor: not-allowed; }
+.btnAdd:hover:not(:disabled) { opacity: 0.8; }
+
+.btnCancel {
+  padding: 9px 20px;
+  background: none;
+  color: var(--fog);
+  border: 1px solid var(--mist);
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+.btnCancel:hover { border-color: var(--fog); color: var(--deep-sea); }
+
+.btnAddNew {
+  padding: 10px 20px;
+  background: none;
+  color: var(--deep-sea);
+  border: 1.5px dashed var(--fog);
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+  align-self: flex-start;
+}
+.btnAddNew:hover { border-color: var(--sage-safe); color: var(--sage-safe); }
+
+.loadingText {
+  font-size: 14px;
+  color: var(--fog);
+  padding: var(--space-3) 0;
+}
+
+/* ── Shortcut cards ───────────────────────────────────────── */
+.shortcutGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.shortcutCard {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: white;
+  border: 1.5px solid var(--mist);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.shortcutCardActive {
+  border-color: var(--sage-safe);
+  background: linear-gradient(135deg, rgba(91,154,139,0.04), rgba(61,139,139,0.02));
+}
+
+.shortcutRadio { display: none; }
+
+.shortcutIcon { font-size: 24px; flex-shrink: 0; line-height: 1; }
+
+.shortcutLabel {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--midnight);
+  margin-bottom: 4px;
+}
+
+.shortcutDesc {
+  font-size: 13px;
+  color: var(--fog);
+  line-height: 1.5;
+}
+
+/* ── Existing styles ──────────────────────────────────────── */
 @media (max-width: 640px) {
   .page { padding-top: var(--space-4); }
+  .formRow { grid-template-columns: 1fr; }
+  .profileCard { flex-wrap: wrap; }
+  .btnLogout { margin-left: 0; width: 100%; }
 }

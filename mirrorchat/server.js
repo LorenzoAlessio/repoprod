@@ -24,6 +24,7 @@ function getOpenAIClient() {
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false })); // Twilio webhooks
 // In production serve the Vite build; in development Vite's dev server handles static files
 app.use(express.static(path.join(__dirname, 'dist')));
 
@@ -200,8 +201,260 @@ app.post('/api/voice', async function (req, res) {
   }
 });
 
+// ── Lazy Supabase client ──────────────────────────────────────
+var _supabaseClient = null;
+function getSupabase() {
+  if (!_supabaseClient) {
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error('SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY non impostate.');
+    }
+    var supabase = require('@supabase/supabase-js');
+    _supabaseClient = supabase.createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+  }
+  return _supabaseClient;
+}
+
+// ── Lazy Twilio client (solo SMS) ────────────────────────────
+var _twilioClient = null;
+function getTwilio() {
+  if (!_twilioClient) {
+    if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
+      throw new Error('TWILIO_ACCOUNT_SID e TWILIO_AUTH_TOKEN non impostate.');
+    }
+    _twilioClient = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+  }
+  return _twilioClient;
+}
+
+// ── Bland.ai — chiama un numero con messaggio vocale ─────────
+async function blandAiCall(phoneNumber, message) {
+  if (!process.env.BLAND_AI_API_KEY) throw new Error('BLAND_AI_API_KEY non impostata.');
+  var res = await fetch('https://api.bland.ai/v1/calls', {
+    method: 'POST',
+    headers: {
+      'authorization': process.env.BLAND_AI_API_KEY,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      phone_number: phoneNumber,
+      task: message,
+      language: 'it',
+      max_duration: 2,
+      record: false,
+      wait_for_greeting: false,
+    }),
+  });
+  if (!res.ok) {
+    var err = await res.text();
+    throw new Error('Bland.ai error: ' + err);
+  }
+  return res.json();
+}
+
+// ── API: Registrazione utente (senza OTP) ────────────────────
+app.post('/api/auth/register', async function (req, res) {
+  try {
+    var name = req.body.name;
+    var phone = req.body.phone;
+    if (!name || !phone) {
+      return res.status(400).json({ error: 'name e phone richiesti' });
+    }
+    var supabase = getSupabase();
+    var result = await supabase
+      .from('users')
+      .upsert({ name: name, phone: phone }, { onConflict: 'phone' })
+      .select()
+      .single();
+    if (result.error) throw result.error;
+    res.json({ user: result.data });
+  } catch (err) {
+    console.error('[/api/auth/register]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── API: Profilo utente ───────────────────────────────────────
+app.get('/api/user/:phone', async function (req, res) {
+  try {
+    var supabase = getSupabase();
+    var phone = decodeURIComponent(req.params.phone);
+    var result = await supabase
+      .from('users')
+      .select('*')
+      .eq('phone', phone)
+      .single();
+    if (result.error || !result.data) {
+      return res.status(404).json({ error: 'Utente non trovato' });
+    }
+    res.json(result.data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── API: Salva contatti (sostituisce tutti per userId) ────────
+app.post('/api/contacts', async function (req, res) {
+  try {
+    var userId = req.body.userId;
+    var contacts = req.body.contacts;
+    if (!userId || !Array.isArray(contacts)) {
+      return res.status(400).json({ error: 'userId e contacts[] richiesti' });
+    }
+    var supabase = getSupabase();
+    await supabase.from('emergency_contacts').delete().eq('user_id', userId);
+    if (contacts.length > 0) {
+      var rows = contacts.map(function (c, i) {
+        return {
+          user_id: userId,
+          name: c.name,
+          surname: c.surname || '',
+          relationship: c.relationship || '',
+          phone: c.phone,
+          priority: i,
+        };
+      });
+      var insertResult = await supabase.from('emergency_contacts').insert(rows);
+      if (insertResult.error) throw insertResult.error;
+    }
+    res.json({ saved: contacts.length });
+  } catch (err) {
+    console.error('[/api/contacts POST]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── API: Leggi contatti per userId ────────────────────────────
+app.get('/api/contacts/:userId', async function (req, res) {
+  try {
+    var supabase = getSupabase();
+    var result = await supabase
+      .from('emergency_contacts')
+      .select('*')
+      .eq('user_id', req.params.userId)
+      .order('priority', { ascending: true });
+    if (result.error) throw result.error;
+    res.json({ contacts: result.data || [] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── API: Trascrizione + Analisi real-time ─────────────────────
+app.post('/api/voice-realtime', async function (req, res) {
+  try {
+    var audio = req.body.audio;
+    var mimeType = req.body.mimeType || 'audio/webm';
+    if (!audio) return res.status(400).json({ error: 'audio richiesto' });
+    if (!process.env.ELEVENLABS_API_KEY) {
+      return res.status(503).json({ error: 'ELEVENLABS_API_KEY non impostata' });
+    }
+
+    // 1. Trascrivi con ElevenLabs Scribe
+    var buffer = Buffer.from(audio, 'base64');
+    var formData = new FormData();
+    formData.append('file', new Blob([buffer], { type: mimeType }), 'chunk.webm');
+    formData.append('model_id', 'scribe_v1');
+
+    var elRes = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
+      method: 'POST',
+      headers: { 'xi-api-key': process.env.ELEVENLABS_API_KEY },
+      body: formData,
+    });
+
+    if (!elRes.ok) {
+      var elErr = await elRes.text();
+      console.error('[ElevenLabs Scribe]', elErr);
+      return res.status(502).json({ error: 'Trascrizione fallita', transcript: '', pericolo: 1, motivo: '', escalation: false, sintesi_emergenza: '' });
+    }
+
+    var elData = await elRes.json();
+    var transcript = (elData.text || '').trim();
+
+    if (!transcript) {
+      return res.json({ transcript: '', anonymized: '', pericolo: 1, motivo: 'Silenzio', escalation: false, sintesi_emergenza: '' });
+    }
+
+    // 2. Anonimizza (JS locale, veloce)
+    var anonResult = jsAnonymize(transcript);
+    var anonymized = anonResult.anonymized;
+
+    // 3. Analizza con LLM
+    var analysis = await callLLM(VOICE_SYSTEM, anonymized);
+
+    res.json(Object.assign({ transcript: transcript, anonymized: anonymized }, analysis));
+  } catch (err) {
+    console.error('[/api/voice-realtime]', err.message);
+    res.status(500).json({ error: err.message, transcript: '', pericolo: 1, motivo: 'Errore interno', escalation: false, sintesi_emergenza: '' });
+  }
+});
+
+// ── API: Emergenza — Chiamata (Bland.ai) ─────────────────────
+app.post('/api/emergency/call', async function (req, res) {
+  try {
+    var userName = req.body.userName || 'Un utente';
+    var contacts = req.body.contacts || [];
+    var dangerContext = req.body.dangerContext || 'pericolo rilevato';
+
+    if (contacts.length === 0) {
+      return res.status(400).json({ error: 'Nessun contatto fornito' });
+    }
+
+    var message = 'Attenzione. ' + userName + ' potrebbe essere in pericolo. ' +
+      'L\'app MirrorChat ha rilevato: ' + dangerContext + '. ' +
+      'Per favore contatta immediatamente ' + userName + '.';
+
+    var results = await Promise.allSettled(
+      contacts.map(function (c) { return blandAiCall(c.phone, message); })
+    );
+
+    var called = results.filter(function (r) { return r.status === 'fulfilled'; }).length;
+    res.json({ called: called, total: contacts.length });
+  } catch (err) {
+    console.error('[/api/emergency/call]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── API: Emergenza — SMS ──────────────────────────────────────
+app.post('/api/emergency/sms', async function (req, res) {
+  try {
+    var userName = req.body.userName || 'Un utente';
+    var contacts = req.body.contacts || [];
+    var lat = req.body.lat;
+    var lon = req.body.lon;
+    var dangerContext = req.body.dangerContext || 'pericolo rilevato';
+
+    if (contacts.length === 0) {
+      return res.status(400).json({ error: 'Nessun contatto fornito' });
+    }
+
+    var locationPart = (lat != null && lon != null)
+      ? ' Posizione: https://maps.google.com/?q=' + lat + ',' + lon
+      : ' Posizione non disponibile.';
+
+    var smsBody = 'SOS MirrorChat: ' + userName + ' potrebbe essere in pericolo. ' +
+      'Pattern: ' + dangerContext + '.' + locationPart;
+
+    var client = getTwilio();
+    var results = await Promise.allSettled(contacts.map(function (c) {
+      return client.messages.create({
+        body: smsBody,
+        to: c.phone,
+        from: process.env.TWILIO_PHONE_NUMBER,
+      });
+    }));
+
+    var sent = results.filter(function (r) { return r.status === 'fulfilled'; }).length;
+    res.json({ sent: sent, total: contacts.length });
+  } catch (err) {
+    console.error('[/api/emergency/sms]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 // SPA fallback
-app.get('*', function (req, res) {
+app.get('/{*splat}', function (req, res) {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 

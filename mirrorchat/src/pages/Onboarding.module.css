@@ -1,0 +1,264 @@
+.page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: var(--dawn-cream);
+  gap: var(--space-4);
+}
+
+/* ── Logo ─────────────────────────────────────────────────── */
+.logo {
+  font-family: var(--font-serif);
+  font-size: 32px;
+  color: var(--midnight);
+}
+.logoAccent {
+  background: var(--gradient-aurora);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Progress dots ────────────────────────────────────────── */
+.progress {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.progressDot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-circle);
+  background: var(--fog);
+  transition: background var(--transition-base), transform var(--transition-base);
+}
+.progressDotActive {
+  background: var(--coral-glow);
+  transform: scale(1.3);
+}
+
+/* ── Card ─────────────────────────────────────────────────── */
+.card {
+  width: 100%;
+  max-width: 460px;
+  background: white;
+  border: 1.5px solid var(--mist);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  box-shadow: var(--shadow-lg);
+}
+
+.cardTitle {
+  font-family: var(--font-serif);
+  font-size: clamp(22px, 5vw, 30px);
+  color: var(--midnight);
+  line-height: 1.2;
+}
+
+.cardDesc {
+  font-size: 15px;
+  color: var(--fog);
+  line-height: 1.65;
+}
+
+/* ── Labels & Inputs ──────────────────────────────────────── */
+.label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--deep-sea);
+  margin-bottom: -8px;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  color: var(--midnight);
+  background: var(--dawn-cream);
+  border: 1.5px solid var(--mist);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+.input:focus {
+  border-color: var(--coral-glow);
+  background: white;
+}
+
+.inputOtp {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  letter-spacing: 0.3em;
+  text-align: center;
+}
+
+select.input {
+  cursor: pointer;
+}
+
+/* ── Buttons ──────────────────────────────────────────────── */
+.btn {
+  width: 100%;
+  padding: 14px 24px;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  background: var(--midnight);
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  margin-top: var(--space-1);
+}
+.btn:hover:not(:disabled) {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btnSecondary {
+  padding: 10px 20px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--deep-sea);
+  background: var(--mist);
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  align-self: flex-start;
+}
+.btnSecondary:hover { background: var(--fog); }
+
+.btnGhost {
+  background: none;
+  border: none;
+  color: var(--fog);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 0;
+  text-align: center;
+}
+.btnGhost:hover { color: var(--deep-sea); }
+
+/* ── Error ────────────────────────────────────────────────── */
+.error {
+  font-size: 14px;
+  color: var(--coral-glow);
+  padding: 10px 14px;
+  background: rgba(232,99,74,0.08);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--coral-glow);
+}
+
+/* ── Contact list ─────────────────────────────────────────── */
+.contactList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px var(--space-3);
+  background: var(--dawn-cream);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--mist);
+}
+
+.contactInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.contactPriority {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-circle);
+  background: var(--gradient-aurora);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.contactMeta {
+  display: block;
+  font-size: 12px;
+  color: var(--fog);
+  margin-top: 2px;
+}
+
+.btnRemove {
+  background: none;
+  border: none;
+  color: var(--fog);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+.btnRemove:hover {
+  color: var(--coral-glow);
+  background: rgba(232,99,74,0.08);
+}
+
+/* ── Add form ─────────────────────────────────────────────── */
+.addForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--dawn-cream);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--fog);
+}
+
+.addFormTitle {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fog);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+/* ── Footer ───────────────────────────────────────────────── */
+.footer {
+  font-size: 12px;
+  color: var(--fog);
+  text-align: center;
+  max-width: 320px;
+}
+
+@media (max-width: 480px) {
+  .card { padding: var(--space-4); }
+  .formRow { grid-template-columns: 1fr; }
+}

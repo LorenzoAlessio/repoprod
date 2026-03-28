@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx skills:*)"
+      "Bash(npx skills:*)",
+      "Bash(curl -s http://localhost:3000/api/chat -X POST -H \"Content-Type: application/json\" -d \"{\"\"message\"\":\"\"test\"\"}\")",
+      "Bash(node -e \":*)",
+      "Bash(curl:*)",
+      "Bash(USER_ID=\"e66c58dc-793c-48f9-8a18-7c040abee5f8\")",
+      "Bash(npx vite:*)"
     ]
   }
 }
