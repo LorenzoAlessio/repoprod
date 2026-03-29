@@ -1,142 +1,183 @@
-import { chunkText } from './chunker';
-import { anonymize as anonymizeRegex } from './anonymizer';
+// Anonymization — regex only, no name replacement.
+// Covers: phone, email, addresses, dates, social handles, URLs, fiscal codes, IBANs.
+// Names are intentionally NOT anonymized — they're needed for context.
 
-const API_BASE = '';
+// ── Phone numbers (Italian + international) ──
+const PHONE_RE = /(?:\+?\d{1,3}[\s.-]?)?(?:\(?\d{2,4}\)?[\s.-]?)?\d{3,4}[\s.-]?\d{3,7}/g;
 
-async function callQwenViaServer(prompt) {
-  const res = await fetch(`${API_BASE}/api/qwen-ner`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt })
-  });
-  if (!res.ok) throw new Error(`Qwen NER HTTP ${res.status}`);
-  const data = await res.json();
-  return data.text || '';
-}
+// ── Email ──
+const EMAIL_RE = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
 
-const NER_PROMPT = `Elenca i nomi propri di persona in questa frase. Scrivi ogni nome su una riga nel formato: nome - uomo oppure nome - donna
+// ── Social handles ──
+const SOCIAL_RE = /@[a-zA-Z0-9_.]{2,}/g;
 
-Frase: anna ha litigato con luca
-anna - donna
-luca - uomo
+// ── Dates (dd/mm, dd-mm-yyyy, dd.mm.yy, etc.) ──
+const DATE_RE = /\b\d{1,2}[\/.\\-]\d{1,2}(?:[\/.\\-]\d{2,4})?\b/g;
 
-Frase: ieri sono stato da elena e il suo ragazzo paolo
-elena - donna
-paolo - uomo
+// ── URLs ──
+const URL_RE = /https?:\/\/[^\s,)]+/gi;
 
-Frase: {TEXT}
-`;
+// ── Italian addresses ──
+// Strategy: match the prefix (via/piazza/etc) + articulated preposition + capitalized words.
+// Use a function to stop at common non-address words.
+const ADDRESS_PREFIX_RE = /\b(?:via|piazza|piazzale|corso|viale|vicolo|largo|lungotevere|lungarno|contrada|strada|loc\.|località|localita)\s+/gi;
 
-const SKIP_WORDS = new Set([
-  'ieri','oggi','domani','sempre','anche','come','dove','quando',
-  'picchiata','picchiato','uscita','uscito','chiamata','chiamato',
-  'arrabbiata','arrabbiato','stanca','stanco','tornata','tornato',
-  'andata','andato','detta','detto','fatta','fatto','messa','messo',
-  'presa','preso','vista','visto','stata','stato','avuta','avuto'
+const ADDRESS_STOP_WORDS = new Set([
+  'e','o','a','da','di','in','che','non','per','con','ma','se','come','dove',
+  'quando','perché','perche','sono','ho','hai','ha','siamo','hanno','era','ero',
+  'alle','alla','allo','agli','al','nel','nella','nello','negli','dal','dalla',
+  'sul','sulla','sullo','sugli','ci','mi','ti','si','lo','la','le','li',
+  'io','tu','lui','lei','noi','voi','loro','un','uno','una','il','i','gli',
+  'poi','qui','già','più','ora','mai','molto','tanto','sempre','anche',
+  'ieri','oggi','domani','dopo','prima','vicino','lontano','piano',
+  'ti','mi','ci','vi','ne','se','te','me',
 ]);
 
-function parseNerOutput(output, originalText) {
-  const entities = [];
-  // Match "Nome - Genere" or "Nome = Genere" or "Nome: Genere" or "Nome (Genere)"
-  const matches = output.matchAll(/([a-zA-ZÀ-ÿ]{2,})\s*[-=:(]\s*(\w+)/gi);
-  for (const m of matches) {
-    let name = m[1].trim();
-    let gender = m[2].trim().toLowerCase();
-    // Normalize gender variants
-    if (['maschio','mascio','maschile','m','male'].includes(gender)) gender = 'uomo';
-    if (['femmina','femminile','f','female'].includes(gender)) gender = 'donna';
-    if (!['uomo','donna'].includes(gender)) gender = 'non_determinato';
-    // Skip common words and names not in original text
-    if (SKIP_WORDS.has(name.toLowerCase())) continue;
-    if (!originalText.toLowerCase().includes(name.toLowerCase())) continue;
-    if (!entities.find(e => e.value.toLowerCase() === name.toLowerCase())) {
-      entities.push({ type: 'PERSONA', value: name, gender });
+function matchAddresses(text) {
+  const matches = [];
+  let m;
+  const re = new RegExp(ADDRESS_PREFIX_RE.source, 'gi');
+  while ((m = re.exec(text)) !== null) {
+    const prefix = m[0];
+    const rest = text.slice(m.index + prefix.length);
+    // Consume optional articulated preposition (del, della, delle, dei, degli, dell')
+    let consumed = '';
+    const artMatch = rest.match(/^(?:del(?:la|le|lo|l')?|dei|degli|delle)\s+/i);
+    if (artMatch) consumed = artMatch[0];
+    // Consume capitalized/name words (stop at common words, punctuation, or lowercase non-name)
+    const remaining = rest.slice(consumed.length);
+    const words = remaining.split(/\s+/);
+    const nameWords = [];
+    for (const w of words) {
+      const clean = w.replace(/[,;:!?.]+$/, '');
+      if (!clean) break;
+      if (ADDRESS_STOP_WORDS.has(clean.toLowerCase())) break;
+      if (nameWords.length > 0 && /^[a-zà-ÿ]/.test(clean) && clean.length <= 3) break;
+      nameWords.push(clean);
+      if (nameWords.length >= 4) break;
+      // If original word had trailing punctuation, stop after this word
+      if (w !== clean) break;
     }
+    if (nameWords.length === 0) continue;
+    let fullMatch = prefix + consumed + nameWords.join(' ');
+    // Optional number after name: ", 15" or " 15" or " n. 15" or " 15/A"
+    const afterName = text.slice(m.index + fullMatch.length);
+    const numMatch = afterName.match(/^(?:\s*,?\s*(?:n\.?\s*)?\d{1,5}(?:\s*\/?\s*[a-zA-Z])?)/);
+    if (numMatch) fullMatch += numMatch[0];
+    matches.push({ index: m.index, text: fullMatch.trim() });
   }
-  return entities;
+  return matches;
 }
 
-const PHONE_RE = /(\+?\d{1,3}[\s.-]?)?\(?\d{2,4}\)?[\s.-]?\d{3,4}[\s.-]?\d{3,4}/g;
-const EMAIL_RE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-const SOCIAL_RE = /@[a-zA-Z0-9_.]{2,}/g;
-const DATE_RE = /\b\d{1,2}[/\-]\d{1,2}(?:[/\-]\d{2,4})?\b/g;
+// ── CAP (codice avviamento postale) ──
+const CAP_RE = /\b\d{5}\b/g;
 
-function substituteEntities(text, personEntities) {
+// ── Codice fiscale ──
+const CF_RE = /\b[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]\b/gi;
+
+// ── IBAN ──
+const IBAN_RE = /\b[A-Z]{2}\d{2}\s?[A-Z0-9]{4}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{4}(?:\s?\d{1,4})?\b/gi;
+
+// ── Targa auto italiana ──
+const PLATE_RE = /\b[A-Z]{2}\s?\d{3}\s?[A-Z]{2}\b/gi;
+
+export function anonymizeText(text) {
   let result = text;
-  const personeGender = {};
-  const mappings = {};
-  let personaCount = 0;
+  const replacements = {};
 
-  const sorted = [...personEntities].sort((a, b) => b.value.length - a.value.length);
-  for (const ent of sorted) {
-    if (mappings[ent.value]) continue;
-    personaCount++;
-    const token = `[PERSONA_${personaCount}]`;
-    personeGender[token] = ent.gender || 'non_determinato';
-    mappings[ent.value] = token;
-    const escaped = ent.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    result = result.replace(new RegExp(escaped, 'gi'), token);
+  // Order matters: longer patterns first to avoid partial matches
+
+  // URLs first (contain dots, slashes that could match other patterns)
+  result = result.replace(URL_RE, (match) => {
+    replacements[match] = '[URL]';
+    return '[URL]';
+  });
+
+  // Email before social (contains @)
+  result = result.replace(EMAIL_RE, (match) => {
+    replacements[match] = '[EMAIL]';
+    return '[EMAIL]';
+  });
+
+  // Addresses (multi-word, custom parser to avoid over-matching)
+  const addrMatches = matchAddresses(result);
+  // Replace longest first, from end to start to preserve indices
+  addrMatches.sort((a, b) => b.index - a.index);
+  for (const addr of addrMatches) {
+    replacements[addr.text] = '[INDIRIZZO]';
+    result = result.slice(0, addr.index) + '[INDIRIZZO]' + result.slice(addr.index + addr.text.length);
   }
 
-  result = result.replace(PHONE_RE, '[TELEFONO]');
-  result = result.replace(EMAIL_RE, '[EMAIL]');
-  result = result.replace(SOCIAL_RE, '@[USERNAME]');
-  result = result.replace(DATE_RE, '[DATA]');
+  // IBAN
+  result = result.replace(IBAN_RE, (match) => {
+    replacements[match] = '[IBAN]';
+    return '[IBAN]';
+  });
 
-  return { anonymized: result, mappings, personeGender };
+  // Codice fiscale
+  result = result.replace(CF_RE, (match) => {
+    replacements[match] = '[CODICE_FISCALE]';
+    return '[CODICE_FISCALE]';
+  });
+
+  // Phone numbers
+  result = result.replace(PHONE_RE, (match) => {
+    // Avoid false positives: must have at least 6 digits
+    const digits = match.replace(/\D/g, '');
+    if (digits.length < 6) return match;
+    replacements[match] = '[TELEFONO]';
+    return '[TELEFONO]';
+  });
+
+  // Social handles
+  result = result.replace(SOCIAL_RE, (match) => {
+    replacements[match] = '@[USERNAME]';
+    return '@[USERNAME]';
+  });
+
+  // Dates
+  result = result.replace(DATE_RE, (match) => {
+    replacements[match] = '[DATA]';
+    return '[DATA]';
+  });
+
+  // Targa
+  result = result.replace(PLATE_RE, (match) => {
+    replacements[match] = '[TARGA]';
+    return '[TARGA]';
+  });
+
+  // CAP (only if 5 digits standing alone, after addresses are already replaced)
+  result = result.replace(CAP_RE, (match) => {
+    replacements[match] = '[CAP]';
+    return '[CAP]';
+  });
+
+  return {
+    anonymized: result,
+    mappings: replacements,
+    personeGender: {}
+  };
 }
 
+// Main export — no Qwen needed, pure regex
 export async function anonymizeWithQwen(text, onProgress) {
-  const chunks = chunkText(text);
-  const allEntities = [];
-  let anySuccess = false;
+  onProgress?.({ phase: 'anonymizing', current: 1, total: 1, entities: 0 });
 
-  for (let i = 0; i < chunks.length; i++) {
-    onProgress?.({
-      phase: 'anonymizing',
-      current: i + 1,
-      total: chunks.length,
-      entities: allEntities.length
-    });
+  const result = anonymizeText(text);
 
-    const prompt = NER_PROMPT.replace('{TEXT}', chunks[i]);
-    let output;
-
-    try {
-      output = await callQwenViaServer(prompt);
-    } catch {
-      try { output = await callQwenViaServer(prompt); } catch { continue; }
-    }
-
-    const entities = parseNerOutput(output, chunks[i]);
-    if (entities.length > 0) {
-      for (const ent of entities) {
-        if (!allEntities.find(e => e.value.toLowerCase() === ent.value.toLowerCase())) {
-          allEntities.push(ent);
-        }
-      }
-      anySuccess = true;
-    }
+  // Count what was found
+  const counts = {};
+  for (const token of Object.values(result.mappings)) {
+    counts[token] = (counts[token] || 0) + 1;
   }
-
-  if (!anySuccess || allEntities.length === 0) {
-    onProgress?.({ phase: 'done', usedFallback: true });
-    const result = anonymizeRegex(text);
-    return { ...result, personeGender: {} };
-  }
-
-  const { anonymized, mappings, personeGender } = substituteEntities(text, allEntities);
 
   onProgress?.({
     phase: 'done',
     usedFallback: false,
-    entityCount: allEntities.length,
-    personeCount: Object.keys(personeGender).length
+    entityCount: Object.keys(result.mappings).length,
+    personeCount: 0
   });
 
-  return {
-    anonymized,
-    mappings: { persone: mappings },
-    personeGender
-  };
+  return result;
 }
