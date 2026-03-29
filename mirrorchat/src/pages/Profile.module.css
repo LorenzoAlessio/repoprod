@@ -33,6 +33,10 @@
 .infoText { font-size: 0.8125rem; color: var(--deep-sea); line-height: 1.5; margin-bottom: 10px; }
 .infoList { font-size: 0.8125rem; color: var(--deep-sea); line-height: 1.8; padding-left: 18px; }
 
+/* Section headers */
+.sectionTitle { font-weight: 600; font-size: 1rem; color: var(--midnight); margin-bottom: 4px; }
+.sectionDesc { font-size: 0.8125rem; color: var(--fog); margin-bottom: 16px; line-height: 1.5; }
+
 /* Empty state */
 .emptyState {
   text-align: center;
@@ -40,25 +44,102 @@
   background: var(--dawn-cream);
   border-radius: 16px;
   border: 1px solid var(--mist);
+  margin-bottom: 24px;
 }
 .emptyText { font-size: 0.9375rem; color: var(--fog); margin-bottom: 16px; }
 .emptyLink { color: var(--teal-clarity); font-weight: 600; text-decoration: none; }
 .emptyLink:hover { text-decoration: underline; }
 
-/* Scheda card */
-.schedaCard {
-  background: #fff;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(13,27,42,0.06);
-  margin-bottom: 16px;
+/* Facts grid */
+.factsSection { margin-bottom: 32px; }
+.factsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
-.schedaTitle { font-weight: 600; font-size: 1rem; color: var(--midnight); margin-bottom: 16px; }
-.schedaContent { display: flex; flex-direction: column; gap: 6px; }
-.schedaLine { font-size: 0.875rem; color: var(--deep-sea); line-height: 1.5; padding-left: 8px; border-left: 2px solid var(--mist); }
-.schedaMeta { font-size: 0.75rem; color: var(--fog); margin-top: 16px; }
+@media (max-width: 500px) {
+  .factsGrid { grid-template-columns: 1fr; }
+}
+.factField {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 3px rgba(13,27,42,0.05);
+}
+.factLabel {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--fog);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+.factRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.factSelect {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1.5px solid var(--mist);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: var(--fog);
+  background: var(--dawn-cream);
+  cursor: pointer;
+  appearance: auto;
+}
+.factSelect:focus { border-color: var(--teal-clarity); outline: none; }
+.factFilled { color: var(--midnight); border-color: var(--teal-clarity); background: rgba(61,139,139,0.04); }
+.factRemove {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(232,99,74,0.1);
+  color: var(--coral-glow);
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.factRemove:hover { background: rgba(232,99,74,0.2); }
+.factSource {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--fog);
+  margin-top: 4px;
+}
+
+/* Extra facts */
+.extraFacts { margin-bottom: 32px; }
+.factsList { display: flex; flex-wrap: wrap; gap: 8px; }
+.extraPill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--teal-clarity);
+  background: rgba(61,139,139,0.1);
+  padding: 6px 12px;
+  border-radius: 100px;
+}
+.pillRemove {
+  border: none;
+  background: none;
+  color: var(--coral-glow);
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0 2px;
+}
 
 /* Narrative sections */
+.narrativeSection { margin-bottom: 32px; }
 .narrativeCard {
   background: #fff;
   border-radius: 12px;
@@ -67,59 +148,44 @@
   overflow: hidden;
 }
 .narrativeHeader {
-  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  background: none;
-  border: none;
-  cursor: pointer;
   font-weight: 600;
   font-size: 0.9375rem;
   color: var(--midnight);
 }
-.narrativeHeader:hover { background: var(--dawn-cream); }
-.chevron { font-size: 0.75rem; color: var(--fog); }
-.narrativeContent { padding: 0 20px 16px; font-size: 0.875rem; color: var(--deep-sea); line-height: 1.6; }
-
-/* Facts (pre-consolidation) */
-.factsCard {
-  background: #fff;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(13,27,42,0.06);
-  margin-bottom: 16px;
-}
-.factsTitle { font-weight: 600; font-size: 0.9375rem; color: var(--midnight); margin-bottom: 4px; }
-.factsNote { font-size: 0.8125rem; color: var(--fog); margin-bottom: 12px; }
-.factsList { display: flex; flex-wrap: wrap; gap: 6px; }
-.factPill {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
+.editBtn {
+  border: none;
+  background: none;
   color: var(--teal-clarity);
-  background: rgba(61,139,139,0.1);
-  padding: 4px 12px;
-  border-radius: 100px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
 }
-
-/* Edit */
-.editSection { margin-bottom: 24px; }
-.editArea {
+.editBtn:hover { background: rgba(61,139,139,0.08); }
+.narrativeContent {
+  padding: 0 20px 16px;
+  font-size: 0.875rem;
+  color: var(--deep-sea);
+  line-height: 1.6;
+}
+.narrativeEdit { padding: 0 20px 16px; }
+.narrativeTextarea {
   width: 100%;
-  min-height: 300px;
-  padding: 16px;
+  padding: 12px;
   border: 1.5px solid var(--mist);
-  border-radius: 12px;
-  font-family: 'JetBrains Mono', monospace;
+  border-radius: 8px;
   font-size: 0.8125rem;
   color: var(--midnight);
   line-height: 1.6;
   resize: vertical;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
-.editArea:focus { border-color: var(--teal-clarity); outline: none; }
-.editButtons { display: flex; gap: 12px; justify-content: flex-end; }
+.narrativeTextarea:focus { border-color: var(--teal-clarity); outline: none; }
 
 /* Actions */
 .actions {
@@ -129,6 +195,12 @@
   margin-top: 32px;
   padding-top: 24px;
   border-top: 1px solid var(--mist);
+}
+.actionsMeta {
+  font-size: 0.75rem;
+  color: var(--fog);
+  text-align: center;
+  margin-bottom: 4px;
 }
 .btnPrimary, .btnSecondary, .btnDanger {
   padding: 12px 20px;
