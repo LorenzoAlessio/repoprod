@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { educationCards } from '../data/education'
 import { resources } from '../data/resources'
+import QuizSession from '../components/QuizSession'
 import styles from './Learn.module.css'
 
 function EducationCard({ card }) {
@@ -78,6 +79,8 @@ function ResourceCard({ resource }) {
 }
 
 export default function Learn() {
+  const [showQuiz, setShowQuiz] = useState(false);
+
   return (
     <div className={`page-container ${styles.page}`}>
 
@@ -91,8 +94,27 @@ export default function Learn() {
         </p>
       </header>
 
+      {/* ── Personal Quiz Section ── */}
+      <section className={`${styles.quizPromoSection} page-enter page-enter--delay-1`}>
+        {!showQuiz ? (
+          <div className={styles.quizPromoCard}>
+            <div className={styles.quizPromoText}>
+              <h2 className={styles.quizPromoTitle}>Quiz Personalizzato</h2>
+              <p className={styles.quizPromoSub}>
+                Rifletti in maniera anonima sulle dinamiche delle tue chat analizzate. L'Intelligenza Artificiale creerà scenari su misura per aiutarti a capire i comportamenti giusti da quelli tossici.
+              </p>
+            </div>
+            <button className="btn btn--aurora" onClick={() => setShowQuiz(true)}>
+              Inizia la Riflessione
+            </button>
+          </div>
+        ) : (
+          <QuizSession onComplete={() => setShowQuiz(false)} />
+        )}
+      </section>
+
       {/* ── Education Cards ── */}
-      <section className={`${styles.eduSection} page-enter page-enter--delay-1`}>
+      <section className={`${styles.eduSection} page-enter page-enter--delay-2`}>
         <span className="section-label">01 — Tecniche manipolatorie</span>
         <div className={styles.eduGrid}>
           {educationCards.map((card, i) => (
@@ -105,7 +127,7 @@ export default function Learn() {
       </section>
 
       {/* ── Resources ── */}
-      <section className={`${styles.resourcesSection} page-enter page-enter--delay-2`}>
+      <section className={`${styles.resourcesSection} page-enter page-enter--delay-3`}>
         <span className="section-label">02 — Risorse e aiuto</span>
         <h2 className={styles.resourcesTitle}>Non sei sola/o</h2>
         <p className={styles.resourcesSub}>

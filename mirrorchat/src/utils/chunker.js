@@ -5,7 +5,7 @@ const MAX_CHARS = MAX_TOKENS * AVG_CHARS_PER_TOKEN;
 const WHATSAPP_RE = /^\[?\d{1,2}[/\-.]\d{1,2}[/\-.]\d{2,4},?\s+\d{1,2}[:.]\d{2}(?:[:.]\d{2})?\]?\s*[-–—]?\s*/;
 const TELEGRAM_SENDER_RE = /^[A-Za-zÀ-ÿ\s]+:\s/;
 
-function splitIntoMessages(text) {
+export function splitIntoMessages(text) {
   const lines = text.split('\n');
   const messages = [];
   let current = '';

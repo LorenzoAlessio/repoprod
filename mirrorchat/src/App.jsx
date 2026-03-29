@@ -4,8 +4,8 @@ import ChatAnalysis from './pages/ChatAnalysis'
 import SafeVoice from './pages/SafeVoice'
 import Learn from './pages/Learn'
 import Settings from './pages/Settings'
-import Profile from './pages/Profile'
 import Onboarding from './pages/Onboarding'
+import SafePlaces from './pages/SafePlaces'
 
 function RequireUser({ children }) {
   const user = localStorage.getItem('mirrorUser')
@@ -31,7 +31,7 @@ export default function App() {
           <Route path="voice"    element={<SafeVoice />} />
           <Route path="learn"    element={<Learn />} />
           <Route path="settings" element={<Settings />} />
-          <Route path="profile" element={<Profile />} />
+          <Route path="safe-places" element={<SafePlaces />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -176,6 +176,15 @@
   justify-content: space-between;
   padding: var(--space-4) var(--space-4);
   border-bottom: 1px solid rgba(255,255,255,0.07);
+  gap: var(--space-2);
+}
+
+.recHeaderCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
 }
 
 .recStatus {
@@ -234,6 +243,56 @@
   text-align: center;
   font-style: italic;
   max-width: 40ch;
+}
+
+/* ── Speaker line variants ────────────────────────────────── */
+.transcriptLineUser {
+  border-left-color: var(--sage-safe) !important;
+  background: rgba(91,154,139,0.07) !important;
+}
+
+.transcriptLineStranger {
+  border-left-color: rgba(232,99,74,0.6) !important;
+  background: rgba(232,99,74,0.05) !important;
+}
+
+.speakerTag {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  color: rgba(200,196,188,0.45);
+  transition: color var(--transition-base);
+}
+
+.speakerTag[data-user="true"] {
+  color: var(--sage-safe);
+}
+
+.speakerTag[data-user="false"] {
+  color: rgba(232,99,74,0.75);
+}
+
+.speakerText {
+  display: block;
+  line-height: 1.5;
+}
+
+/* ── Diarization badge ────────────────────────────────────── */
+.diarizationBadge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sage-safe);
+  background: rgba(91,154,139,0.1);
+  border: 1px solid rgba(91,154,139,0.25);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  animation: fadeIn 0.4s var(--ease-out);
 }
 
 /* ── Transcript box ───────────────────────────────────────── */
@@ -516,13 +575,35 @@
 .dangerChip {
   font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 4px 12px;
+  padding: 4px 10px;
   border-radius: var(--radius-pill);
-  border: 1px solid;
-  transition: color 0.4s ease, background 0.4s ease, border-color 0.4s ease;
+  border: 1px solid currentColor;
+  transition: all var(--transition-base);
+  animation: pulseDanger 2s infinite;
+}
+
+/* ── Score Scalare Indicator ──────────────────────────────── */
+.scoreIndicatorWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.scoreBarContainer {
+  width: 100px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.scoreBarFill {
+  height: 100%;
+  transition: width 0.5s var(--ease-out), background 0.5s var(--ease-out);
 }
 
 /* ── Recording layout: content + mic panel ─────────────────── */

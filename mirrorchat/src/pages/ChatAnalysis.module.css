@@ -146,12 +146,15 @@
 /* ── Anon Preview ─────────────────────────────────────────── */
 .anonBox {
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(91,154,139,0.2);
-  background: linear-gradient(135deg, rgba(91,154,139,0.04), rgba(61,139,139,0.02));
+  border: 1px solid var(--mist);
+  background: var(--dawn-cream);
   padding: var(--space-4);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  position: relative;
+  margin-top: var(--space-4);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .anonImpossible {
@@ -190,13 +193,61 @@
   color: var(--fog);
 }
 
+.anonTextWrapper {
+  width: 100%;
+  position: relative;
+}
+
 .anonText {
   font-family: var(--font-mono);
   font-size: 13px;
-  color: var(--deep-sea);
-  line-height: 1.7;
-  word-break: break-word;
+  color: var(--midnight);
+  line-height: 1.5;
   white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+}
+
+.anonTextCollapsed {
+  max-height: 56px; /* Circa 3 righe */
+  overflow: hidden;
+}
+
+.anonTextCollapsed::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 32px;
+  background: linear-gradient(to bottom, transparent, var(--dawn-cream));
+  pointer-events: none;
+}
+
+.expandAnonBtn {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: var(--midnight);
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  transition: all var(--transition-fast);
+  z-index: 5;
+  box-shadow: 0 4px 12px rgba(13,27,42,0.15);
+}
+
+.expandAnonBtn:hover {
+  background: var(--deep-sea);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(13,27,42,0.2);
 }
 
 .anonImpossibleText {
@@ -254,10 +305,21 @@
 .pillLabel { font-size: 13px; font-weight: 500; color: var(--midnight); }
 .pillTech  { font-family: var(--font-mono); font-size: 10px; color: var(--fog); }
 
-/* ── Results ──────────────────────────────────────────────── */
+/* ── Report Summary ────────────────────────────────────────── */
 .results { margin-bottom: var(--space-6); }
 
-.resultsCard {
+.thankYouMessage {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--deep-sea);
+  background: transparent;
+  border-bottom: 1px solid var(--fog);
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-5);
+  text-align: center;
+}
+
+.summaryCard {
   background: white;
   border-radius: var(--radius-xl);
   border: 1px solid var(--mist);
@@ -265,53 +327,201 @@
   padding: var(--space-5);
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-4);
 }
 
-.severityRow { display: flex; align-items: center; }
+.summaryHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--mist);
+}
 
-.block { display: flex; flex-direction: column; gap: var(--space-2); }
+.summaryStats {
+  display: flex;
+  gap: var(--space-4);
+}
 
-.techniqueName {
+.statBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.statValue {
   font-family: var(--font-serif);
-  font-size: clamp(22px, 4vw, 30px);
+  font-size: 32px;
+  line-height: 1;
+  color: var(--midnight);
+}
+
+.statLabel {
+  font-size: 13px;
+  color: var(--fog);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+
+.summaryEval {
+  font-size: 16px;
+  color: var(--deep-sea);
+  line-height: 1.6;
+}
+
+.summaryCategories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.categoryPill {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--mist);
+  color: var(--midnight);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.categoryPill:hover {
+  background: var(--dawn-cream);
+  border-color: var(--fog);
+}
+
+.categoryPillActive {
+  background: var(--midnight);
+  color: white;
+  border-color: var(--midnight);
+}
+
+/* ── Message List ─────────────────────────────────────────── */
+.messageList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.messageItem {
+  background: white;
+  border-radius: var(--radius-lg);
+  border-left: 4px solid var(--fog);
+  border-top: 1px solid var(--mist);
+  border-right: 1px solid var(--mist);
+  border-bottom: 1px solid var(--mist);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.messageItem:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Severity borders */
+.messageNeutral { border-left-color: var(--fog); opacity: 0.8; }
+.messageSeverity1 { border-left-color: var(--sage-safe); }
+.messageSeverity2 { border-left-color: var(--teal-safe-2); }
+.messageSeverity3 { border-left-color: var(--amber-warm); }
+.messageSeverity4 { border-left-color: var(--coral-glow); }
+.messageSeverity5 { border-left-color: var(--danger-deep); }
+
+.messageContent {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.messageAuthor {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fog);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: -4px;
+}
+
+.messageTextWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+.messageText {
+  font-size: 16px;
+  color: var(--midnight);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.expandBtn {
+  background: none;
+  border: none;
+  color: var(--deep-sea);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.expandBtn:hover {
+  text-decoration: none;
+}
+
+.messageAnalysis {
+  background: var(--dawn-cream);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid rgba(13,27,42,0.04);
+}
+
+.messageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.messageCategory {
+  font-family: var(--font-serif);
+  font-size: 20px;
   color: var(--midnight);
   line-height: 1.2;
 }
 
-.quoteBox {
-  border-left: 3px solid var(--coral-glow);
-  padding: var(--space-3) var(--space-4);
-  background: rgba(232,99,74,0.04);
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
-}
-
-.quoteText {
-  font-family: var(--font-serif);
-  font-size: 17px;
-  font-style: italic;
+.messageSeverityBadge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(13,27,42,0.06);
   color: var(--midnight);
-  line-height: 1.55;
 }
 
-.explanation { font-size: 15px; color: var(--deep-sea); line-height: 1.7; }
-
-.responseList { list-style: none; display: flex; flex-direction: column; gap: var(--space-2); }
-
-.responseItem {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: var(--dawn-cream);
-  border-radius: var(--radius-md);
-  font-size: 15px;
-  color: var(--midnight);
-  line-height: 1.55;
+.messageExplanation {
+  font-size: 14px;
+  color: var(--deep-sea);
+  line-height: 1.6;
 }
 
-.responseNum { font-family: var(--font-mono); font-size: 10px; color: var(--fog); padding-top: 3px; flex-shrink: 0; }
-
+/* ── Resources Banner ─────────────────────────────────────── */
 .resourcesBanner {
   padding: var(--space-4);
   background: var(--mist);
@@ -343,7 +553,8 @@
 /* ── Responsive ───────────────────────────────────────────── */
 @media (max-width: 640px) {
   .page { padding-top: var(--space-4); }
-  .resultsCard { padding: var(--space-4) var(--space-3); }
+  .summaryCard { padding: var(--space-4) var(--space-3); }
+  .summaryStats { width: 100%; justify-content: flex-start; }
 }
 
 /* ── Qwen Progress ───────────────────────────────────────── */

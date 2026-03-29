@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import SeverityIndicator from '../components/SeverityIndicator'
 import { createAudioRecorder } from '../utils/speech.js'
-import { shouldTriggerAlert } from '../utils/emergency.js'
 import styles from './SafeVoice.module.css'
 
 const STATES = { IDLE: 'idle', STARTING: 'starting', RECORDING: 'recording', COUNTDOWN: 'countdown', CALLING: 'calling' }
-const COUNTDOWN_SECONDS = 5
+const COUNTDOWN_SECONDS = 15
 const NUM_BARS = 16
+
+const HARD_TRIGGERS = /ti ammazzo|ti uccido|ti faccio fuori|crepa|muori|ti riempio di sberle|ti gonfio|ti do due schiaffi|ti spacco|sberle|menare|ti meno|strangolar|ti ammazz|ti stupr|violentar/i
 
 function dangerAccent(level) {
   if (level >= 4) return '#E8634A'
@@ -14,15 +15,28 @@ function dangerAccent(level) {
   return '#5B9A8B'
 }
 
+// Calcola il livello (1-5) dal punteggio (0-100)
+function getLevelFromScore(s) {
+  if (s >= 100) return 5
+  if (s >= 60) return 4
+  if (s >= 35) return 3
+  if (s >= 15) return 2
+  return 1
+}
+
 export default function SafeVoice() {
   const user = JSON.parse(localStorage.getItem('mirrorUser') || '{}')
   const shortcut = localStorage.getItem('mirrorShortcut') || 'button'
 
   const [status, setStatus] = useState(STATES.IDLE)
-  const [readings, setReadings] = useState([])
+  
+  // Nuovo sistema di scala punteggio: 0-100
+  const [score, setScore] = useState(0)
+  const scoreRef = useRef(score)
+  useEffect(() => { scoreRef.current = score }, [score])
+
   const [transcriptLines, setTranscriptLines] = useState([])
   const [interimText, setInterimText] = useState('')
-  const [currentDanger, setCurrentDanger] = useState(1)
   const [lastMotivo, setLastMotivo] = useState('')
   const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS)
   const [elapsed, setElapsed] = useState(0)
@@ -34,13 +48,14 @@ export default function SafeVoice() {
   const wakeLockRef = useRef(null)
   const countdownTimerRef = useRef(null)
   const elapsedTimerRef = useRef(null)
+  const decayTimerRef = useRef(null)
   const statusRef = useRef(status)
-  const lastMotivoRef = useRef(lastMotivo)
 
   useEffect(() => { statusRef.current = status }, [status])
-  useEffect(() => { lastMotivoRef.current = lastMotivo }, [lastMotivo])
 
-  // ── Wake Lock ─────────────────────────────────────────────
+  // Deriviamo il livello attuale dal punteggio
+  const currentDanger = getLevelFromScore(score)
+
   async function acquireWakeLock() {
     if ('wakeLock' in navigator) {
       try { wakeLockRef.current = await navigator.wakeLock.request('screen') } catch (_) {}
@@ -51,9 +66,18 @@ export default function SafeVoice() {
     wakeLockRef.current = null
   }
 
-  // ── Analisi testo via /api/voice ──────────────────────────
+  // ── Analisi testo e punteggio scalare ─────────────────────
   const analyzeText = useCallback(async (text) => {
     if (statusRef.current !== STATES.RECORDING) return
+
+    // 1. HARD TRIGGER LATO CLIENT (ultra-veloce, bypassa l'API per minacce palesi)
+    if (HARD_TRIGGERS.test(text)) {
+      setLastMotivo("Minaccia fisica esplicita o di morte intercettata immediatamente.")
+      setScore(100)
+      if (statusRef.current === STATES.RECORDING) startCountdown()
+      return
+    }
+
     try {
       const res = await fetch('/api/voice', {
         method: 'POST',
@@ -62,34 +86,52 @@ export default function SafeVoice() {
       })
       if (!res.ok) return
       const data = await res.json()
+
+      // 2. CONVERSIONE PERICOLO → PUNTI
       if (data.pericolo) {
-        setCurrentDanger(data.pericolo)
         if (data.motivo) setLastMotivo(data.motivo)
-        setReadings(prev => {
-          const updated = [...prev, { pericolo: data.pericolo, timestamp: Date.now() }]
-          if (statusRef.current === STATES.RECORDING && shouldTriggerAlert(updated)) {
-            startCountdown()
-          }
-          return updated
-        })
+        
+        let pointIncrement = 0
+        const tags = data.tag || []
+
+        if (data.pericolo === 5) pointIncrement = 100 // Hard trigger AI
+        else if (data.pericolo === 4) pointIncrement = 30
+        else if (data.pericolo === 3) pointIncrement = 15
+        else if (data.pericolo === 2) pointIncrement = 5
+        else if (data.pericolo === 1 || tags.includes('neutro') || tags.includes('calma')) pointIncrement = -3
+
+        // Extra penalità per tag psicologicamente specifici
+        if (pointIncrement > 0 && pointIncrement < 100) {
+           if (tags.includes('gaslighting') || tags.includes('svalutazione')) pointIncrement += 5
+           if (tags.includes('isolamento') || tags.includes('restrizione')) pointIncrement += 10
+        }
+
+        if (pointIncrement !== 0) {
+          setScore(prev => {
+            const newScore = Math.max(0, Math.min(100, prev + pointIncrement))
+            // Se scatta il livello 5 (>=100) avvia il timer
+            if (newScore >= 100 && statusRef.current === STATES.RECORDING) {
+              startCountdown()
+            }
+            return newScore
+          })
+        }
       }
     } catch (_) {}
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Avvia registrazione ───────────────────────────────────
   async function startRecording() {
     setError('')
     setStatus(STATES.STARTING)
-    setReadings([])
+    setScore(0)
     setTranscriptLines([])
     setInterimText('')
-    setCurrentDanger(1)
     setLastMotivo('')
     setElapsed(0)
     setFreqBars(Array(NUM_BARS).fill(0))
 
     try {
-      // Recorder per livelli mic (non invia chunk all'API)
       const recorder = createAudioRecorder({
         onChunk: () => {},
         chunkInterval: 99999,
@@ -103,9 +145,14 @@ export default function SafeVoice() {
       await recorder.start()
       await acquireWakeLock()
       setStatus(STATES.RECORDING)
+      
       elapsedTimerRef.current = setInterval(() => setElapsed(s => s + 1), 1000)
+      
+      // Decay Timer: -1 punto ogni 5 secondi (Raffreddamento della conversazione)
+      decayTimerRef.current = setInterval(() => {
+        setScore(prev => Math.max(0, prev - 1))
+      }, 5000)
 
-      // ── SpeechRecognition (trascrizione nativa browser) ───
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition
       if (!SR) {
         setError('Trascrizione vocale non supportata. Usa Chrome o Edge.')
@@ -121,7 +168,7 @@ export default function SafeVoice() {
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const text = event.results[i][0].transcript
           if (event.results[i].isFinal) {
-            setTranscriptLines(prev => [...prev, text].slice(-4))
+            setTranscriptLines(prev => [...prev, text].slice(-8))
             setInterimText('')
             analyzeText(text)
           } else {
@@ -143,12 +190,11 @@ export default function SafeVoice() {
     } catch (err) {
       setStatus(STATES.IDLE)
       setError(err.name === 'NotAllowedError'
-        ? 'Permesso microfono negato. Abilitalo nelle impostazioni del browser.'
+        ? 'Permesso microfono negato.'
         : 'Errore avvio: ' + err.message)
     }
   }
 
-  // ── Ferma registrazione ───────────────────────────────────
   function stopRecording() {
     recognitionRef.current?.stop()
     recognitionRef.current = null
@@ -156,17 +202,16 @@ export default function SafeVoice() {
     recorderRef.current = null
     clearInterval(elapsedTimerRef.current)
     clearInterval(countdownTimerRef.current)
+    clearInterval(decayTimerRef.current)
     releaseWakeLock()
     setStatus(STATES.IDLE)
-    setReadings([])
+    setScore(0)
     setTranscriptLines([])
     setInterimText('')
-    setCurrentDanger(1)
     setElapsed(0)
     setFreqBars(Array(NUM_BARS).fill(0))
   }
 
-  // ── Countdown ─────────────────────────────────────────────
   function startCountdown() {
     if (statusRef.current === STATES.COUNTDOWN || statusRef.current === STATES.CALLING) return
     setStatus(STATES.COUNTDOWN)
@@ -185,10 +230,9 @@ export default function SafeVoice() {
   function cancelCountdown() {
     clearInterval(countdownTimerRef.current)
     setStatus(STATES.RECORDING)
-    setReadings([])
+    setScore(55) // Resetta sotto la soglia per non re-triggerare immediatamente
   }
 
-  // ── Emergenza mock ────────────────────────────────────────
   async function fireEmergency() {
     setStatus(STATES.CALLING)
     recognitionRef.current?.stop()
@@ -196,10 +240,10 @@ export default function SafeVoice() {
     recorderRef.current?.stop()
     recorderRef.current = null
     clearInterval(elapsedTimerRef.current)
+    clearInterval(decayTimerRef.current)
     releaseWakeLock()
   }
 
-  // ── Doppio tap ────────────────────────────────────────────
   useEffect(() => {
     if (shortcut !== 'double-tap') return
     let lastTap = 0
@@ -220,6 +264,7 @@ export default function SafeVoice() {
     recorderRef.current?.stop()
     clearInterval(elapsedTimerRef.current)
     clearInterval(countdownTimerRef.current)
+    clearInterval(decayTimerRef.current)
     releaseWakeLock()
   }, [])
 
@@ -229,20 +274,19 @@ export default function SafeVoice() {
 
   const accent = dangerAccent(currentDanger)
 
-  // ── CALLING (mock) ────────────────────────────────────────
   if (status === STATES.CALLING) {
     const dangerContext = lastMotivoRef.current || 'segnali di pericolo rilevati'
     return (
       <div className={styles.callingScreen}>
-        <div className={styles.mockCallBadge}>🧪 MODALITÀ TEST</div>
+        <div className={styles.mockCallBadge}>🚨 MODALITÀ DI TEST - CHIAMATA SIMULATA 🚨</div>
         <div className={styles.mockCallBox}>
           <span className={styles.mockCallIcon}>📞</span>
-          <p className={styles.mockCallTitle}>In questa occasione sarebbe partita la chiamata</p>
+          <p className={styles.mockCallTitle}>In uno scenario reale, ora partirebbe la chiamata automatica ed l'SMS.</p>
           <p className={styles.mockCallContext}>
-            Pattern rilevato: <strong>{dangerContext}</strong>
+            Pattern critico rilevato: <strong>{dangerContext}</strong>
           </p>
           <p className={styles.mockCallContacts}>
-            Contatti che sarebbero stati chiamati:{' '}
+            Contatti che verrebbero allertati:{' '}
             <strong>
               {JSON.parse(localStorage.getItem('mirrorContacts') || '[]')
                 .map(c => c.name).join(', ') || 'nessuno configurato'}
@@ -256,7 +300,6 @@ export default function SafeVoice() {
     )
   }
 
-  // ── IDLE ──────────────────────────────────────────────────
   if (status === STATES.IDLE || status === STATES.STARTING) {
     return (
       <div className={`page-container ${styles.idlePage}`}>
@@ -267,8 +310,7 @@ export default function SafeVoice() {
           </div>
           <h1 className={styles.idleTitle}>SafeVoice</h1>
           <p className={styles.idleDesc}>
-            Avvia la registrazione prima di un incontro a rischio. Se MirrorChat rileva
-            segnali di pericolo, chiama automaticamente i tuoi contatti.
+            Avvia la registrazione. L'IA attribuisce un punteggio scalare alla conversazione. Se si accumulano più gravità, avvia una chiamata di soccorso in 15 secondi. Trigger immediato per minacce di morte.
           </p>
         </header>
 
@@ -292,7 +334,7 @@ export default function SafeVoice() {
         </div>
 
         <div className={`${styles.featureRow} page-enter page-enter--delay-2`}>
-          {[['🔒', 'Audio mai salvato'], ['👤', 'Testo anonimizzato'], ['📍', 'GPS in emergenza']].map(([icon, label]) => (
+           {[['🔒', 'Audio solo locale'], ['⚡', 'Hard-trigger rapido'], ['⚖️', 'Scoring scalare']].map(([icon, label]) => (
             <div key={label} className={styles.featurePill}>
               <span>{icon}</span>
               <span>{label}</span>
@@ -303,31 +345,34 @@ export default function SafeVoice() {
     )
   }
 
-  // ── RECORDING + COUNTDOWN ─────────────────────────────────
   return (
     <div
       className={`${styles.recordingPage} ${currentDanger >= 4 ? styles.recordingPageDanger : ''}`}
       style={{ '--accent': accent }}
     >
-      {/* Header */}
       <div className={styles.recHeader}>
         <div className={styles.recStatus}>
           <span className={styles.recDot} />
           <span className={styles.recTimer}>{formatTime(elapsed)}</span>
         </div>
-        <div
-          className={styles.dangerChip}
-          style={{ color: accent, borderColor: `${accent}55`, background: `${accent}18` }}
-        >
-          Pericolo {currentDanger}/5
+        
+        {/* Nuovo indicatore grafico del punteggio scalare */}
+        <div className={styles.scoreIndicatorWrapper}>
+          <div
+            className={styles.dangerChip}
+            style={{ color: accent, borderColor: `${accent}55`, background: `${accent}18` }}
+          >
+            Livello {currentDanger}/5
+          </div>
+          <div className={styles.scoreBarContainer}>
+            <div className={styles.scoreBarFill} style={{ width: `${score}%`, background: accent }} />
+          </div>
         </div>
+
         <button className={styles.stopBtn} onClick={stopRecording}>Ferma</button>
       </div>
 
-      {/* Layout: main + mic panel */}
       <div className={styles.recLayout}>
-
-        {/* Left: danger + transcript */}
         <div className={styles.recMain}>
           <div className={styles.dangerSection}>
             <SeverityIndicator level={currentDanger} />
@@ -335,7 +380,7 @@ export default function SafeVoice() {
           </div>
 
           <div className={styles.transcriptBox}>
-            <span className={styles.transcriptLabel}>Trascrizione live</span>
+            <span className={styles.transcriptLabel}>Trascrizione live immediata</span>
             {transcriptLines.length === 0 && !interimText
               ? <p className={styles.transcriptEmpty}>In ascolto…</p>
               : (
@@ -359,7 +404,6 @@ export default function SafeVoice() {
           </div>
         </div>
 
-        {/* Right: mic level visualizer */}
         <div className={styles.micPanel}>
           <span className={styles.micPanelLabel}>MIC</span>
           <div className={styles.micBars}>
@@ -379,16 +423,15 @@ export default function SafeVoice() {
         </div>
       </div>
 
-      {/* Countdown overlay */}
       {status === STATES.COUNTDOWN && (
         <div className={styles.countdownOverlay}>
           <div className={styles.countdownModal}>
             <div className={styles.countdownWarning}>⚠️</div>
-            <h2 className={styles.countdownTitle}>Pericolo rilevato</h2>
-            <p className={styles.countdownDesc}>Chiamata automatica tra:</p>
+            <h2 className={styles.countdownTitle}>Pericolo Rilevato!</h2>
+            <p className={styles.countdownDesc}>Chiamata automatica SOS tra:</p>
             <div className={styles.countdownNumber}>{countdown}</div>
             <button className={styles.cancelBtn} onClick={cancelCountdown}>
-              ANNULLA
+              ANNULLA CHIAMATA
             </button>
           </div>
         </div>

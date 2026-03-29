@@ -2,11 +2,11 @@ import { NavLink } from 'react-router-dom'
 import styles from './Sidebar.module.css'
 
 const NAV_ITEMS = [
-  { to: '/chat',      icon: '💬', label: 'Analisi Chat' },
-  { to: '/voice',     icon: '🎤', label: 'SafeVoice' },
-  { to: '/learn',     icon: '📚', label: 'Impara' },
-  { to: '/settings',  icon: '⚙️', label: 'Impostazioni' },
-  { to: '/profile',   icon: '🛡️', label: 'Il mio profilo' },
+  { to: '/chat',        icon: '💬', label: 'Analisi Chat' },
+  { to: '/voice',       icon: '🎤', label: 'SafeVoice' },
+  { to: '/learn',       icon: '📚', label: 'Impara' },
+  { to: '/safe-places', icon: '🗺️', label: 'Posti sicuri' },
+  { to: '/settings',    icon: '⚙️', label: 'Impostazioni' },
 ]
 
 export default function Sidebar({ open, onClose }) {

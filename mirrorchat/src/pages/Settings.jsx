@@ -1,341 +1,469 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { getStoredProfileData, clearProfile, consolidateProfile } from '../utils/profiler'
 import styles from './Settings.module.css'
 
 export function getStoredGender() {
-  return localStorage.getItem('mirrorchat_genere') || 'non_specificato';
+  const facts = JSON.parse(localStorage.getItem('mirrorchat_profile_facts') || '[]')
+  const f = facts.find(f => f.fact === 'genere')
+  return f ? f.value : (localStorage.getItem('mirrorchat_genere') || 'non_specificato')
 }
 
-const ANON_METHODS = [
-  {
-    id: 'python',
-    icon: '🐍',
-    title: 'Script Python',
-    status: 'active',
-    desc: 'Anonimizzazione tramite regex avanzate in Python. Sostituisce nomi, numeri, email, date e codici fiscali con token anonimi.',
-  },
-  {
-    id: 'local-ai',
-    icon: '🧠',
-    title: 'AI Locale (QWen 2.5 — 1.5B)',
-    status: 'coming',
-    desc: 'Anonimizzazione tramite modello linguistico locale. Nessun dato inviato in rete. In sviluppo.',
-  },
-]
+const FACT_LABELS = {
+  genere: { label: 'Genere', options: ['donna', 'uomo', 'non-binario', 'non_determinato'] },
+  eta_stimata: { label: 'Età stimata', options: ['14-16', '16-18', '18-20', '20+'] },
+  ha_partner: { label: 'Ha un partner', options: ['si', 'no', 'non_determinato'] },
+  genere_partner: { label: 'Genere partner', options: ['uomo', 'donna', 'non-binario', 'non_determinato'] },
+  tipo_relazione: { label: 'Tipo relazione', options: ['fidanzato/a', 'marito/moglie', 'ex', 'conoscente', 'altro'] },
+  ha_figli: { label: 'Ha figli', options: ['si', 'no', 'non_determinato'] },
+  vive_con: { label: 'Vive con', options: ['genitori', 'partner', 'da solo/a', 'altro'] },
+  studia: { label: 'Studia', options: ['si', 'no', 'non_determinato'] },
+  lavora: { label: 'Lavora', options: ['si', 'no', 'non_determinato'] },
+  stato_emotivo: { label: 'Stato emotivo', options: ['paura', 'confusione', 'rabbia', 'tristezza', 'dipendenza', 'altro'] },
+  isolamento: { label: 'Isolamento sociale', options: ['si', 'no', 'parziale'] },
+}
 
-const PRIVACY_POINTS = [
-  'I tuoi messaggi vengono anonimizzati prima di qualsiasi analisi AI.',
-  "L'anonimizzazione avviene lato server tramite script locale — nessun dato grezzo raggiunge l'LLM.",
-  'Nessun dato viene salvato o registrato su database.',
-  "L'analisi AI avviene tramite API OpenAI solo sul testo già anonimizzato.",
-]
+const FACTS_KEY = 'mirrorchat_profile_facts'
+const PROFILE_KEY = 'mirrorchat_profile_md'
 
 const RELATIONSHIPS = ['Genitore', 'Amico/a', 'Fidanzato/a', 'Fratello/Sorella', 'Parente', 'Altro']
-
-const BLANK_CONTACT = { name: '', surname: '', relationship: 'Genitore', phone: '' }
+const BLANK_PERSON = { name: '', surname: '', phone: '', relationship: 'Altro' }
 
 export default function Settings() {
   const user = JSON.parse(localStorage.getItem('mirrorUser') || '{}')
-  const [contacts, setContacts] = useState(() => JSON.parse(localStorage.getItem('mirrorContacts') || '[]'))
-  const [showAddForm, setShowAddForm] = useState(false)
-  const [newContact, setNewContact] = useState({ ...BLANK_CONTACT })
-  const [contactError, setContactError] = useState('')
-  const [shortcut, setShortcut] = useState(localStorage.getItem('mirrorShortcut') || 'button')
-  const [genere, setGenere] = useState(localStorage.getItem('mirrorchat_genere') || 'non_specificato')
+  
+  // ── Toggle State ──
+  const [expanded, setExpanded] = useState({ profile: true, privacy: false, risk: false })
+  const toggle = (sec) => setExpanded(prev => ({ ...prev, [sec]: !prev[sec] }))
 
-  async function saveContacts(updated) {
-    setContacts(updated)
-    localStorage.setItem('mirrorContacts', JSON.stringify(updated))
-    if (user.id) {
-      try {
-        await fetch('/api/contacts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: user.id, contacts: updated }),
-        })
-      } catch (_) {}
+  // ── Profile State ──
+  const [facts, setFacts] = useState([])
+  const [profile, setProfile] = useState('')
+  const [analysisCount, setAnalysisCount] = useState(0)
+  const [editingNarrative, setEditingNarrative] = useState(null)
+  const [editText, setEditText] = useState('')
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  // ── Lists State ──
+  const [emergencyContacts, setEmergencyContacts] = useState(() => JSON.parse(localStorage.getItem('mirrorContacts') || '[]'))
+  const [familyMembers, setFamilyMembers] = useState(() => JSON.parse(localStorage.getItem('mirrorFamily') || '[]'))
+  const [atRiskUsers, setAtRiskUsers] = useState(() => JSON.parse(localStorage.getItem('mirrorAtRisk') || '[]'))
+  
+  const [showAddForm, setShowAddForm] = useState(null) // 'emergency' | 'family' | 'risk' | null
+  const [newPerson, setNewPerson] = useState({ ...BLANK_PERSON })
+  const [formError, setFormError] = useState('')
+
+  const loadProfileData = useCallback(() => {
+    const data = getStoredProfileData()
+    setFacts(data.facts)
+    setProfile(data.profile)
+    setAnalysisCount(data.analysisCount)
+  }, [])
+
+  useEffect(() => { loadProfileData() }, [loadProfileData])
+
+  // ── Profile Actions ──
+  const updateFact = (factKey, newValue) => {
+    const updated = [...facts]
+    const idx = updated.findIndex(f => f.fact === factKey)
+    const date = new Date().toISOString().split('T')[0]
+    if (idx >= 0) {
+      updated[idx] = { ...updated[idx], value: newValue, date, source: 'manual' }
+    } else {
+      updated.push({ fact: factKey, value: newValue, confidence: 1.0, source: 'manual', date })
+    }
+    setFacts(updated)
+    localStorage.setItem(FACTS_KEY, JSON.stringify(updated))
+  }
+
+  const removeFact = (factKey) => {
+    const updated = facts.filter(f => f.fact !== factKey)
+    setFacts(updated)
+    localStorage.setItem(FACTS_KEY, JSON.stringify(updated))
+  }
+
+  const handleRegenerate = async () => {
+    setSaving(true)
+    try {
+      await consolidateProfile()
+      loadProfileData()
+    } catch { /* ignore */ }
+    setSaving(false)
+  }
+
+  const handleDeleteProfile = () => {
+    clearProfile()
+    setFacts([])
+    setProfile('')
+    setAnalysisCount(0)
+    setShowConfirm(false)
+  }
+
+  // Narrative parsing
+  const narrativeSections = []
+  if (profile) {
+    const re = /### (.+)\n([\s\S]*?)(?=\n### |$)/g
+    let m
+    while ((m = re.exec(profile)) !== null) {
+      if (!m[1].toLowerCase().includes('scheda')) {
+        narrativeSections.push({ title: m[1].trim(), content: m[2].trim() })
+      }
     }
   }
 
-  function removeContact(i) {
-    saveContacts(contacts.filter((_, idx) => idx !== i))
+  const saveNarrative = (idx) => {
+    const title = narrativeSections[idx].title
+    let newProfile = profile
+    const oldSection = `### ${title}\n${narrativeSections[idx].content}`
+    const newSection = `### ${title}\n${editText}`
+    newProfile = newProfile.replace(oldSection, newSection)
+    setProfile(newProfile)
+    localStorage.setItem(PROFILE_KEY, newProfile)
+    setEditingNarrative(null)
   }
 
-  function moveContact(i, dir) {
-    const j = i + dir
-    if (j < 0 || j >= contacts.length) return
-    const updated = [...contacts]
-    ;[updated[i], updated[j]] = [updated[j], updated[i]]
-    saveContacts(updated)
+  // ── List Actions ──
+  const saveList = (type, updated) => {
+    const keys = { emergency: 'mirrorContacts', family: 'mirrorFamily', risk: 'mirrorAtRisk' }
+    const setters = { emergency: setEmergencyContacts, family: setFamilyMembers, risk: setAtRiskUsers }
+    setters[type](updated)
+    localStorage.setItem(keys[type], JSON.stringify(updated))
   }
 
-  function addContact(e) {
+  const handleAddPerson = (e) => {
     e.preventDefault()
-    setContactError('')
-    if (!newContact.name.trim() || !newContact.phone.trim()) {
-      return setContactError('Nome e telefono sono obbligatori.')
+    if (showAddForm === 'risk') {
+      // At-risk users: all fields optional as per request
+    } else {
+      if (!newPerson.name.trim() || !newPerson.phone.trim()) {
+        return setFormError('Nome e telefono sono obbligatori.')
+      }
     }
-    saveContacts([...contacts, { ...newContact }])
-    setNewContact({ ...BLANK_CONTACT })
-    setShowAddForm(false)
+
+    const currentList = { emergency: emergencyContacts, family: familyMembers, risk: atRiskUsers }[showAddForm]
+    saveList(showAddForm, [...currentList, { ...newPerson }])
+    setNewPerson({ ...BLANK_PERSON })
+    setShowAddForm(null)
+    setFormError('')
   }
 
-  function handleShortcutChange(val) {
-    setShortcut(val)
-    localStorage.setItem('mirrorShortcut', val)
+  const removePerson = (type, i) => {
+    const currentList = { emergency: emergencyContacts, family: familyMembers, risk: atRiskUsers }[type]
+    saveList(type, currentList.filter((_, idx) => idx !== i))
   }
 
-  function handleLogout() {
+  const handleLogout = () => {
     localStorage.removeItem('mirrorUser')
     window.location.href = '/onboarding'
   }
 
   return (
     <div className={`page-container ${styles.page}`}>
-
       <header className={`${styles.hero} page-enter`}>
         <span className="section-label">Impostazioni</span>
         <h1 className={styles.title}>Impostazioni</h1>
         <p className={styles.subtitle}>
-          Configura MirrorChat e scopri come vengono protetti i tuoi dati.
+          Gestisci il tuo profilo, la tua rete di protezione e i dati di privacy.
         </p>
       </header>
 
-      {/* ── Profilo ── */}
-      {user.name && (
-        <section className={`${styles.section} page-enter`}>
-          <span className="section-label">01 — Profilo</span>
-          <div className={styles.profileCard}>
-            <div className={styles.profileAvatar}>{user.name.charAt(0).toUpperCase()}</div>
-            <div>
-              <p className={styles.profileName}>{user.name}</p>
-              <p className={styles.profilePhone}>{user.phone}</p>
-            </div>
-            <button className={styles.btnLogout} onClick={handleLogout}>
-              Cambia account
-            </button>
+      {/* ── SEZIONE 01: PROFILO ── */}
+      <section className={`${styles.toggleSection} ${expanded.profile ? styles.toggleSectionOpen : ''} page-enter`}>
+        <button className={styles.toggleHeader} onClick={() => toggle('profile')}>
+          <div className={styles.toggleTitle}>
+            <span className={styles.toggleIcon}>👤</span>
+            <span>Il mio profilo</span>
           </div>
-        </section>
-      )}
+          <span className={`${styles.toggleChevron} ${expanded.profile ? styles.toggleChevronOpen : ''}`}>▼</span>
+        </button>
 
-      {/* ── Genere ── */}
-      <section className={`${styles.section} page-enter`}>
-        <span className="section-label">Il tuo genere</span>
-        <div className={styles.card}>
-          <h2 className={styles.cardTitle}>Il tuo genere</h2>
-          <p className={styles.cardDesc}>
-            Aiuta l'AI a contestualizzare le dinamiche relazionali. Non viene mai associato ai tuoi dati personali.
-          </p>
-          <div className={styles.genderOptions}>
-            {[
-              { value: 'donna', label: 'Donna' },
-              { value: 'uomo', label: 'Uomo' },
-              { value: 'non-binario', label: 'Non-binario' },
-              { value: 'non_specificato', label: 'Preferisco non specificare' },
-            ].map(opt => (
-              <label key={opt.value} className={`${styles.genderOption} ${genere === opt.value ? styles.genderActive : ''}`}>
-                <input
-                  type="radio"
-                  name="genere"
-                  value={opt.value}
-                  checked={genere === opt.value}
-                  onChange={() => {
-                    setGenere(opt.value);
-                    localStorage.setItem('mirrorchat_genere', opt.value);
-                  }}
-                />
-                <span>{opt.label}</span>
-              </label>
-            ))}
+        {expanded.profile && (
+          <div className={styles.toggleContent}>
+            <div className={styles.factsGrid}>
+              {Object.entries(FACT_LABELS).map(([key, config]) => {
+                const f = facts.find(f => f.fact === key)
+                const value = f ? f.value : ''
+                return (
+                  <div key={key} className={styles.factField}>
+                    <label className={styles.factLabel}>{config.label}</label>
+                    <div className={styles.factRow}>
+                      <select
+                        className={`${styles.factSelect} ${value ? styles.factFilled : ''}`}
+                        value={value}
+                        onChange={(e) => updateFact(key, e.target.value)}
+                      >
+                        <option value="">— non specificato —</option>
+                        {config.options.map(opt => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                      {value && (
+                        <button className={styles.factRemove} onClick={() => removeFact(key)}>×</button>
+                      )}
+                    </div>
+                    {value && f && (
+                      <span className={styles.factSource}>
+                        {f.source === 'manual' ? '✏️ inserito manualmente' : `🤖 rilevato da ${f.source}`}
+                      </span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+
+            {narrativeSections.length > 0 && (
+              <div className={styles.narrativeZone}>
+                <span className={styles.subSectionTitle}>Analisi del profilo</span>
+                {narrativeSections.map((sec, i) => (
+                  <div key={i} className={styles.narrativeCard}>
+                    <div className={styles.narrativeHeader}>
+                      <span>{sec.title}</span>
+                      <button className={styles.editBtn} onClick={() => {
+                        if (editingNarrative === i) { setEditingNarrative(null) }
+                        else { setEditingNarrative(i); setEditText(sec.content) }
+                      }}>
+                        {editingNarrative === i ? 'Annulla' : '✏️'}
+                      </button>
+                    </div>
+                    {editingNarrative === i ? (
+                      <div style={{ padding: '0 16px 16px' }}>
+                        <textarea
+                          className={styles.narrativeTextarea}
+                          value={editText}
+                          onChange={(e) => setEditText(e.target.value)}
+                          rows={4}
+                        />
+                        <button className={styles.btnAdd} onClick={() => saveNarrative(i)}>Salva</button>
+                      </div>
+                    ) : (
+                      <div className={styles.narrativeContent}>{sec.content}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className={styles.profileActions}>
+              <p className={styles.actionsMeta}>
+                {analysisCount > 0 ? `Basato su ${analysisCount} analisi · ` : ''}
+                {facts.length} fatti raccolti
+              </p>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button className={styles.btnSecondary} onClick={handleRegenerate} disabled={saving || facts.length === 0}>
+                  {saving ? 'Generazione...' : '🔄 Rigenera Profilo'}
+                </button>
+                <button className={styles.btnDanger} onClick={() => setShowConfirm(true)}>
+                  🗑️ Cancella Dati
+                </button>
+              </div>
+            </div>
+
+            {user.name && (
+              <button className={styles.btnLogout} onClick={handleLogout}>
+                Esci (Loggato come {user.name})
+              </button>
+            )}
           </div>
-        </div>
+        )}
       </section>
 
-      {/* ── Contatti di emergenza ── */}
-      <section className={`${styles.section} page-enter page-enter--delay-1`}>
-        <span className="section-label">02 — Contatti di emergenza</span>
-        <p className={styles.sectionDesc}>
-          Questi contatti vengono chiamati in ordine di priorità quando SafeVoice rileva un pericolo.
-          L'SMS con la posizione GPS viene inviato a tutti.
-        </p>
+      {/* ── SEZIONE 02: DATI DI PRIVACY ── */}
+      <section className={`${styles.toggleSection} ${expanded.privacy ? styles.toggleSectionOpen : ''} page-enter page-enter--delay-1`}>
+        <button className={styles.toggleHeader} onClick={() => toggle('privacy')}>
+          <div className={styles.toggleTitle}>
+            <span className={styles.toggleIcon}>🛡️</span>
+            <span>Dati di privacy</span>
+          </div>
+          <span className={`${styles.toggleChevron} ${expanded.privacy ? styles.toggleChevronOpen : ''}`}>▼</span>
+        </button>
 
-        <>
-            {contacts.length > 0 && (
+        {expanded.privacy && (
+          <div className={styles.toggleContent}>
+            {/* Familiari */}
+            <div className={styles.subSection}>
+              <span className={styles.subSectionTitle}>I tuoi familiari</span>
               <ul className={styles.contactList}>
-                {contacts.map((c, i) => (
+                {familyMembers.map((c, i) => (
                   <li key={i} className={styles.contactItem}>
-                    <span className={styles.contactPriority}>{i + 1}</span>
+                    <div className={styles.contactInfo}>
+                      <span className={styles.contactName}>{c.name} {c.surname}</span>
+                      <span className={styles.contactMeta}>{c.relationship} {c.phone && `· ${c.phone}`}</span>
+                    </div>
+                    <button className={styles.btnRemove} onClick={() => removePerson('family', i)}>✕</button>
+                  </li>
+                ))}
+              </ul>
+              {showAddForm === 'family' ? (
+                <PersonForm
+                  onSave={handleAddPerson}
+                  onCancel={() => setShowAddForm(null)}
+                  newPerson={newPerson}
+                  setNewPerson={setNewPerson}
+                  error={formError}
+                  title="Nuovo familiare"
+                />
+              ) : (
+                <button className={styles.btnAddNew} onClick={() => { setShowAddForm('family'); setNewPerson({...BLANK_PERSON}) }}>
+                  + Aggiungi familiare
+                </button>
+              )}
+            </div>
+
+            <hr style={{ border: 'none', borderTop: '1px solid var(--mist)', margin: '8px 0' }} />
+
+            {/* Contatti Emergenza */}
+            <div className={styles.subSection}>
+              <span className={styles.subSectionTitle}>Contatti di emergenza</span>
+              <p className={styles.sectionDesc} style={{ marginBottom: '12px' }}>
+                Chiamati in ordine di priorità da SafeVoice.
+              </p>
+              <ul className={styles.contactList}>
+                {emergencyContacts.map((c, i) => (
+                  <li key={i} className={styles.contactItem}>
                     <div className={styles.contactInfo}>
                       <span className={styles.contactName}>{c.name} {c.surname}</span>
                       <span className={styles.contactMeta}>{c.relationship} · {c.phone}</span>
                     </div>
-                    <div className={styles.contactActions}>
-                      <button className={styles.btnOrder} onClick={() => moveContact(i, -1)} disabled={i === 0} aria-label="Sposta su">↑</button>
-                      <button className={styles.btnOrder} onClick={() => moveContact(i, 1)} disabled={i === contacts.length - 1} aria-label="Sposta giù">↓</button>
-                      <button className={styles.btnRemove} onClick={() => removeContact(i)} aria-label="Rimuovi">✕</button>
-                    </div>
+                    <button className={styles.btnRemove} onClick={() => removePerson('emergency', i)}>✕</button>
                   </li>
                 ))}
               </ul>
-            )}
-
-            {contacts.length === 0 && !showAddForm && (
-              <div className={styles.emptyContacts}>
-                <p>Nessun contatto di emergenza impostato.</p>
-              </div>
-            )}
-
-            {/* Add form */}
-            {showAddForm ? (
-              <form className={styles.addForm} onSubmit={addContact}>
-                <p className={styles.addFormTitle}>Nuovo contatto</p>
-                <div className={styles.formRow}>
-                  <input
-                    className={styles.input}
-                    type="text"
-                    placeholder="Nome *"
-                    value={newContact.name}
-                    onChange={e => setNewContact(p => ({ ...p, name: e.target.value }))}
-                  />
-                  <input
-                    className={styles.input}
-                    type="text"
-                    placeholder="Cognome"
-                    value={newContact.surname}
-                    onChange={e => setNewContact(p => ({ ...p, surname: e.target.value }))}
-                  />
-                </div>
-                <div className={styles.formRow}>
-                  <select
-                    className={styles.input}
-                    value={newContact.relationship}
-                    onChange={e => setNewContact(p => ({ ...p, relationship: e.target.value }))}
-                  >
-                    {RELATIONSHIPS.map(r => <option key={r} value={r}>{r}</option>)}
-                  </select>
-                  <input
-                    className={styles.input}
-                    type="tel"
-                    placeholder="+39 333… *"
-                    value={newContact.phone}
-                    onChange={e => setNewContact(p => ({ ...p, phone: e.target.value }))}
-                  />
-                </div>
-                {contactError && <p className={styles.fieldError}>{contactError}</p>}
-                <div className={styles.formBtns}>
-                  <button className={styles.btnAdd} type="submit">
-                    Salva contatto
-                  </button>
-                  <button className={styles.btnCancel} type="button" onClick={() => { setShowAddForm(false); setContactError('') }}>
-                    Annulla
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <button className={styles.btnAddNew} onClick={() => setShowAddForm(true)}>
-                + Aggiungi contatto
-              </button>
-            )}
-          </>
+              {showAddForm === 'emergency' ? (
+                <PersonForm
+                  onSave={handleAddPerson}
+                  onCancel={() => setShowAddForm(null)}
+                  newPerson={newPerson}
+                  setNewPerson={setNewPerson}
+                  error={formError}
+                  title="Contatto emergenza"
+                  requirePhone
+                />
+              ) : (
+                <button className={styles.btnAddNew} onClick={() => { setShowAddForm('emergency'); setNewPerson({...BLANK_PERSON}) }}>
+                  + Aggiungi contatto emergenza
+                </button>
+              )}
+            </div>
+          </div>
         )}
       </section>
 
-      {/* ── Scorciatoia attivazione ── */}
-      <section className={`${styles.section} page-enter page-enter--delay-2`}>
-        <span className="section-label">03 — Scorciatoia attivazione</span>
-        <p className={styles.sectionDesc}>
-          Scegli come avviare SafeVoice in modo discreto.
-        </p>
-        <div className={styles.shortcutGrid}>
-          {[
-            { value: 'button', icon: '🔘', label: 'Bottone UI', desc: 'Premi il pulsante nella schermata SafeVoice.' },
-            { value: 'double-tap', icon: '✌️', label: 'Doppio tap', desc: 'Tocca due volte lo schermo per avviare o fermare.' },
-          ].map(opt => (
-            <label
-              key={opt.value}
-              className={`${styles.shortcutCard} ${shortcut === opt.value ? styles.shortcutCardActive : ''}`}
-            >
-              <input
-                type="radio"
-                name="shortcut"
-                value={opt.value}
-                checked={shortcut === opt.value}
-                onChange={() => handleShortcutChange(opt.value)}
-                className={styles.shortcutRadio}
+      {/* ── SEZIONE 03: UTENTI A RISCHIO ── */}
+      <section className={`${styles.toggleSection} ${expanded.risk ? styles.toggleSectionOpen : ''} page-enter page-enter--delay-2`}>
+        <button className={styles.toggleHeader} onClick={() => toggle('risk')}>
+          <div className={styles.toggleTitle}>
+            <span className={styles.toggleIcon}>⚠️</span>
+            <span>Utenti a rischio</span>
+          </div>
+          <span className={`${styles.toggleChevron} ${expanded.risk ? styles.toggleChevronOpen : ''}`}>▼</span>
+        </button>
+
+        {expanded.risk && (
+          <div className={styles.toggleContent}>
+            <p className={styles.sectionDesc}>
+              Lista delle persone da cui desideri salvaguardarti. Questi dati aiutano l'AI a rilevare potenziali pericoli.
+            </p>
+            <ul className={styles.contactList}>
+              {atRiskUsers.map((c, i) => (
+                <li key={i} className={`${styles.contactItem} styles.riskCard`}>
+                  <div className={styles.contactInfo}>
+                    <span className={styles.contactName}>{c.name} {c.surname}</span>
+                    <span className={styles.contactMeta}>{c.phone || 'Numero non specificato'}</span>
+                  </div>
+                  <button className={styles.btnRemove} onClick={() => removePerson('risk', i)}>✕</button>
+                </li>
+              ))}
+            </ul>
+            {showAddForm === 'risk' ? (
+              <PersonForm
+                onSave={handleAddPerson}
+                onCancel={() => setShowAddForm(null)}
+                newPerson={newPerson}
+                setNewPerson={setNewPerson}
+                error={formError}
+                title="Soggetto a rischio"
               />
-              <span className={styles.shortcutIcon}>{opt.icon}</span>
-              <div>
-                <p className={styles.shortcutLabel}>{opt.label}</p>
-                <p className={styles.shortcutDesc}>{opt.desc}</p>
-              </div>
-            </label>
-          ))}
-        </div>
+            ) : (
+              <button className={styles.btnAddNew} onClick={() => { setShowAddForm('risk'); setNewPerson({...BLANK_PERSON}) }}>
+                + Segnala utente a rischio
+              </button>
+            )}
+          </div>
+        )}
       </section>
 
-      {/* ── Anonimizzazione ── */}
-      <section className={`${styles.section} page-enter page-enter--delay-3`}>
-        <span className="section-label">04 — Metodo di anonimizzazione</span>
-        <div className={styles.methodGrid}>
-          {ANON_METHODS.map(m => (
-            <div
-              key={m.id}
-              className={`${styles.methodCard} ${m.status === 'active' ? styles.methodCardActive : styles.methodCardComingSoon}`}
-            >
-              <div className={styles.methodTop}>
-                <span className={styles.methodIcon}>{m.icon}</span>
-                <div>
-                  <h3 className={styles.methodTitle}>{m.title}</h3>
-                  <span className={`${styles.methodBadge} ${m.status === 'active' ? styles.badgeActive : styles.badgeSoon}`}>
-                    {m.status === 'active' ? 'Attivo' : 'In arrivo'}
-                  </span>
-                </div>
-              </div>
-              <p className={styles.methodDesc}>{m.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Privacy ── */}
-      <section className={`${styles.section} page-enter page-enter--delay-3`}>
-        <span className="section-label">05 — Privacy e dati</span>
-        <div className={styles.privacyCard}>
-          <h3 className={styles.privacyTitle}>Come proteggiamo i tuoi dati</h3>
-          <ul className={styles.privacyList}>
-            {PRIVACY_POINTS.map((p, i) => (
-              <li key={i} className={styles.privacyItem}>
-                <span className={styles.privacyCheck}>✓</span>
-                <span>{p}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* ── About ── */}
-      <section className={`${styles.section} page-enter page-enter--delay-3`}>
-        <span className="section-label">06 — Informazioni</span>
+      {/* ── ABOUT ── */}
+      <section className="page-enter page-enter--delay-3" style={{ marginTop: '24px' }}>
         <div className={styles.aboutCard}>
           <div className={styles.aboutLogo}>
             <span>Mirror</span><span className={styles.aboutLogoAccent}>Chat</span>
           </div>
           <p className={styles.aboutDesc}>
-            MirrorChat aiuta a riconoscere la manipolazione psicologica nelle
-            comunicazioni digitali. Uno strumento per chiunque voglia capire meglio
-            le dinamiche relazionali e proteggersi.
+            MirrorChat analizza le dinamiche relazionali per la tua protezione. Tutti i dati restano criptati sul dispositivo.
           </p>
           <div className={styles.aboutMeta}>
-            <span className={styles.metaItem}>v2.0.0</span>
-            <span className={styles.metaSep}>·</span>
-            <span className={styles.metaItem}>OpenAI GPT-4o-mini</span>
-            <span className={styles.metaSep}>·</span>
-            <span className={styles.metaItem}>ElevenLabs Scribe</span>
-            <span className={styles.metaSep}>·</span>
-            <span className={styles.metaItem}>Twilio</span>
+            <span>v2.1.0</span> · <span>Privacy First</span> · <span>AI-Driven Safety</span>
           </div>
         </div>
       </section>
 
+      {/* Delete confirmation modal */}
+      {showConfirm && (
+        <div className={styles.modal}>
+          <div className={styles.modalCard}>
+            <h3 className={styles.modalTitle}>Cancellare tutto?</h3>
+            <p className={styles.modalText}>Questa azione eliminerà permanentemente i fatti raccolti e l'analisi del profilo.</p>
+            <div className={styles.modalButtons}>
+              <button className={styles.btnCancel} onClick={() => setShowConfirm(false)}>Annulla</button>
+              <button className={styles.btnDanger} onClick={handleDeleteProfile}>Cancella</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  )
+}
+
+function PersonForm({ onSave, onCancel, newPerson, setNewPerson, error, title, requirePhone }) {
+  return (
+    <form className={styles.addForm} onSubmit={onSave}>
+      <span className={styles.subSectionTitle}>{title}</span>
+      <div className={styles.formRow}>
+        <input
+          className={styles.input}
+          placeholder="Nome"
+          value={newPerson.name}
+          onChange={e => setNewPerson(p => ({ ...p, name: e.target.value }))}
+        />
+        <input
+          className={styles.input}
+          placeholder="Cognome"
+          value={newPerson.surname}
+          onChange={e => setNewPerson(p => ({ ...p, surname: e.target.value }))}
+        />
+      </div>
+      <div className={styles.formRow}>
+        <input
+          className={styles.input}
+          placeholder={requirePhone ? "Telefono *" : "Telefono"}
+          value={newPerson.phone}
+          onChange={e => setNewPerson(p => ({ ...p, phone: e.target.value }))}
+        />
+        {title !== 'Soggetto a rischio' && (
+          <select
+            className={styles.input}
+            value={newPerson.relationship}
+            onChange={e => setNewPerson(p => ({ ...p, relationship: e.target.value }))}
+          >
+            {RELATIONSHIPS.map(r => <option key={r} value={r}>{r}</option>)}
+          </select>
+        )}
+      </div>
+      {error && <p className={styles.fieldError}>{error}</p>}
+      <div className={styles.formBtns}>
+        <button className={styles.btnAdd} type="submit">Salva</button>
+        <button className={styles.btnCancel} type="button" onClick={onCancel}>Annulla</button>
+      </div>
+    </form>
   )
 }

@@ -13,9 +13,51 @@
 }
 
 .subtitle {
-  font-size: 17px;
+  font-size: 16px;
   color: var(--fog);
-  line-height: 1.65;
+  line-height: 1.6;
+}
+
+/* ── Quiz Section ─────────────────────────────────────────── */
+.quizPromoSection {
+  margin-bottom: var(--space-6);
+}
+
+.quizPromoCard {
+  background: linear-gradient(135deg, var(--mist) 0%, white 100%);
+  border: 1px solid var(--fog);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+
+.quizPromoTitle {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  color: var(--midnight);
+  margin-bottom: var(--space-2);
+}
+
+.quizPromoSub {
+  font-size: 15px;
+  color: var(--deep-sea);
+  line-height: 1.6;
+}
+
+@media (min-width: 640px) {
+  .quizPromoCard {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .quizPromoText {
+    flex: 1;
+    padding-right: var(--space-5);
+  }
 }
 
 /* ── Education Section ────────────────────────────────────── */

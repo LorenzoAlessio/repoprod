@@ -1,0 +1,200 @@
+.container {
+  padding: 0;
+  height: calc(100vh - 60px); /* Assuming navbar is 60px context */
+  display: flex;
+  flex-direction: column;
+  background-color: var(--dawn-cream);
+  color: var(--midnight);
+  box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding: var(--space-4);
+  }
+}
+
+.header {
+  margin-bottom: var(--space-4);
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 400;
+  margin: 0;
+  color: var(--midnight);
+}
+
+.subtitle {
+  color: var(--fog);
+  margin-top: var(--space-1);
+  font-size: 1rem;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  gap: var(--space-4);
+  position: relative;
+  overflow: hidden;
+  background: white;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--mist);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-2);
+}
+
+@media (max-width: 768px) {
+  .content {
+    flex-direction: column;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    gap: 0;
+  }
+}
+
+.mapSection {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-2);
+}
+
+@media (max-width: 768px) {
+  .mapSection {
+    padding: 0;
+  }
+}
+
+.mapWrapper {
+  flex: 1;
+  position: relative;
+  height: 100%;
+  min-height: 400px;
+  background: var(--mist);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--mist);
+}
+
+.loadingOverlay, .errorOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: rgba(250, 248, 245, 0.9);
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  text-align: center;
+  padding: var(--space-5);
+}
+
+.loadingOverlay span {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--mist);
+  border-top-color: var(--deep-sea);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: var(--space-3);
+}
+
+.errorOverlay h3 {
+  color: var(--danger-deep);
+  margin-bottom: var(--space-2);
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+}
+
+.errorOverlay p {
+  color: var(--fog);
+  margin-bottom: var(--space-4);
+}
+
+.retryBtn {
+  background: var(--midnight);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.retryBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Leaflet Overrides */
+:global(.leaflet-container) {
+  width: 100%;
+  height: 100%;
+  background: #e5e3df; /* OSM default bg match */
+}
+
+/* Legend Styles */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--dawn-cream);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--mist);
+  margin-top: auto;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.9rem;
+  color: var(--midnight);
+}
+
+.legendIcon {
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: white;
+  border-radius: 50%;
+  border: 1px solid var(--mist);
+  box-shadow: var(--shadow-sm);
+}
+
+.chatWrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-left: 1px solid var(--mist);
+  height: 100%;
+  min-width: 320px;
+}
+
+@media (max-width: 768px) {
+  .chatWrapper {
+    height: 400px;
+    border-left: none;
+    border-top: 1px solid var(--mist);
+    min-width: 100%;
+  }
+}

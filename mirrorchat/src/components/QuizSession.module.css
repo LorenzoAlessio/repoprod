@@ -1,0 +1,195 @@
+.container {
+  background: white;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--mist);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-md);
+  margin-bottom: var(--space-6);
+  animation: slideFadeIn 0.4s ease-out;
+}
+
+@keyframes slideFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.loadingWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-6) 0;
+  text-align: center;
+}
+
+.loadingText {
+  color: var(--fog);
+  font-size: 15px;
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+.errorContainer {
+  background: rgba(193, 68, 51, 0.05);
+  border-color: rgba(193, 68, 51, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+
+.errorText {
+  color: var(--danger-deep);
+  font-size: 15px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--mist);
+  padding-bottom: var(--space-3);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  color: var(--midnight);
+}
+
+.progress {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--fog);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.intro {
+  font-size: 15px;
+  color: var(--deep-sea);
+  margin-bottom: var(--space-5);
+  line-height: 1.6;
+}
+
+.questionCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.questionText {
+  font-size: 18px;
+  color: var(--midnight);
+  line-height: 1.5;
+  font-weight: 500;
+  margin-bottom: var(--space-2);
+}
+
+.optionsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.optionItem {
+  display: flex;
+  background: var(--dawn-cream);
+  border: 1.5px solid var(--mist);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition-fast);
+  align-items: center;
+  gap: var(--space-4);
+  font-size: 15px;
+  color: var(--deep-sea);
+}
+
+.optionItem:hover:not(:disabled) {
+  border-color: var(--fog);
+  background: white;
+  transform: translateX(4px);
+}
+
+.optionLetter {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--fog);
+  background: white;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--mist);
+}
+
+.optionText {
+  flex: 1;
+  line-height: 1.5;
+}
+
+/* State Modifiers */
+.optionCorrect {
+  background: rgba(91, 154, 139, 0.1);
+  border-color: var(--sage-safe);
+  color: var(--midnight);
+}
+
+.optionCorrect .optionLetter {
+  background: var(--sage-safe);
+  color: white;
+  border-color: var(--sage-safe);
+}
+
+.optionWrong {
+  background: rgba(193, 68, 51, 0.05);
+  border-color: rgba(193, 68, 51, 0.3);
+  color: var(--danger-deep);
+}
+
+.optionWrong .optionLetter {
+  background: var(--danger-deep);
+  color: white;
+  border-color: var(--danger-deep);
+}
+
+.optionDisabled {
+  opacity: 0.5;
+  filter: grayscale(1);
+}
+
+.explanationBox {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  background: linear-gradient(135deg, rgba(232, 168, 56, 0.08), rgba(232, 99, 74, 0.05));
+  border-left: 3px solid var(--amber-warm);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.explanationTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--midnight);
+}
+
+.explanationText {
+  font-size: 15px;
+  color: var(--deep-sea);
+  line-height: 1.6;
+}
+
+.nextBtn {
+  align-self: flex-start;
+  margin-top: var(--space-2);
+}

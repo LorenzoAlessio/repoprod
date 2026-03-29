@@ -1,21 +1,23 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import SeverityIndicator from '../components/SeverityIndicator'
-import { analyzeChat } from '../utils/api'
-import { anonymizeWithQwen } from '../utils/qwenAnonymizer'
+import { analyzeChatReport, anonymizeText } from '../utils/api'
+import { splitIntoMessages } from '../utils/chunker'
 import { getStoredGender } from './Settings'
+import { extractFacts } from '../utils/profiler'
+import { saveChatReport } from '../utils/chatStorage'
 import { examples } from '../data/examples'
 import { resources } from '../data/resources'
 import styles from './ChatAnalysis.module.css'
 
-const TECHNIQUE_LABELS = {
-  gaslighting:       'Gaslighting',
-  love_bombing:      'Love Bombing',
-  colpevolizzazione: 'Colpevolizzazione',
-  isolamento:        'Isolamento',
-  controllo:         'Controllo digitale',
-  svalutazione:      'Svalutazione',
-  idealizzazione:    'Idealizzazione / Devalutazione',
-  nessuna:           'Nessuna manipolazione rilevata',
+const CATEGORY_LABELS = {
+  gelosia:               'Gelosia Possessiva',
+  violenza_psicologica:  'Violenza Psicologica',
+  violenza_fisica:       'Violenza / Minaccia Fisica',
+  limitazione_personale: 'Limitazione Personale',
+  maltrattamento:        'Maltrattamento',
+  love_bombing:          'Love Bombing',
+  controllo_digitale:    'Controllo Digitale',
+  nessuna:               'Nessuna manipolazione',
 }
 
 // File extensions we can read as plain text
@@ -62,9 +64,11 @@ export default function ChatAnalysis() {
   const [loading, setLoading]           = useState(false)
   const [error, setError]               = useState('')
   const [result, setResult]             = useState(null)
-  const [qwenProgress, setQwenProgress] = useState(null)
-  const [usedFallback, setUsedFallback] = useState(false)
   const [personeGender, setPersoneGender] = useState({})
+  const [activeFilter, setActiveFilter] = useState(null)
+  const [expandedMessages, setExpandedMessages] = useState({})
+  const [isAnonExpanded, setIsAnonExpanded] = useState(false)
+  
   const fileInputRef                    = useRef(null)
   const resultsRef                      = useRef(null)
 
@@ -72,25 +76,16 @@ export default function ChatAnalysis() {
   const textToAnon = rawText.trim()
   const debouncedText = useDebounce(textToAnon, 700)
 
-  // ── Anonymise via Qwen (runs on-device) ──
+  // ── Anonymise via Python Script ──
   const anonymize = useCallback(async (text) => {
     if (!text) { setAnonState({ status: 'idle', text: '', error: false }); return }
     setAnonState({ status: 'loading', text: '', error: false })
-    setQwenProgress({ phase: 'anonymizing', current: 0, total: 1, entities: 0 })
-    setUsedFallback(false)
     try {
-      const anonResult = await anonymizeWithQwen(text, (progress) => {
-        setQwenProgress(progress)
-        if (progress.phase === 'done') {
-          setUsedFallback(progress.usedFallback || false)
-        }
-      })
+      const anonResult = await anonymizeText(text)
       setAnonState({ status: 'done', text: anonResult.anonymized, error: false })
-      setPersoneGender(anonResult.personeGender || {})
-      setQwenProgress(null)
+      setPersoneGender({})
     } catch {
       setAnonState({ status: 'impossible', text: '', error: true })
-      setQwenProgress(null)
     }
   }, [])
 
@@ -98,6 +93,18 @@ export default function ChatAnalysis() {
   useEffect(() => {
     anonymize(debouncedText)
   }, [debouncedText, anonymize])
+
+  const toggleFilter = (category) => {
+    setActiveFilter(prev => prev === category ? null : category)
+  }
+
+  const toggleExpand = (index) => {
+    setExpandedMessages(prev => ({ ...prev, [index]: !prev[index] }))
+  }
+
+  const toggleAnonExpand = () => {
+    setIsAnonExpanded(prev => !prev)
+  }
 
   // ── File handling ──
   const handleFile = async (f) => {
@@ -172,8 +179,15 @@ export default function ChatAnalysis() {
     setLoading(true)
     try {
       const genere = getStoredGender()
-      const data = await analyzeChat(textForLLM, genere, personeGender)
+      const messages = splitIntoMessages(textForLLM)
+      const data = await analyzeChatReport(messages, genere, personeGender)
       setResult(data)
+      
+      // Save data locally for personalized Learning Quiz
+      saveChatReport(data)
+
+      // Extract profile facts in background
+      extractFacts(textForLLM, 'chat')
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
     } catch (e) {
       setError(e.message)
@@ -227,13 +241,22 @@ export default function ChatAnalysis() {
     }
 
     if (anonState.status === 'done' && anonState.text) {
+      const anonTextRows = anonState.text.split('\n')
+      const isLong = anonTextRows.length > 2 || anonState.text.length > 150
       return (
         <div className={styles.anonBox}>
           <div className={styles.anonHeader}>
             <span className={styles.anonBadge}>🔒 Testo anonimizzato</span>
-            <span className={styles.anonNote}>Questo è ciò che verrà analizzato dall'AI</span>
+            <span className={styles.anonNote}>Questo testo sicuro è l'unico che verrà analizzato dall'AI</span>
           </div>
-          <p className={styles.anonText}>{anonState.text}</p>
+          <div className={`${styles.anonTextWrapper} ${!isAnonExpanded && isLong ? styles.anonTextCollapsed : ''}`}>
+            <p className={styles.anonText}>{anonState.text}</p>
+          </div>
+          {isLong && (
+            <button className={styles.expandAnonBtn} onClick={toggleAnonExpand}>
+              {isAnonExpanded ? 'Riduci' : 'Leggi tutto'}
+            </button>
+          )}
         </div>
       )
     }
@@ -329,34 +352,6 @@ export default function ChatAnalysis() {
         {/* Anon preview */}
         {renderAnonPreview()}
 
-        {/* Qwen progress */}
-        {qwenProgress && qwenProgress.phase === 'anonymizing' && (
-          <div className={styles.qwenProgress}>
-            <div className={styles.qwenHeader}>
-              <span>🛡️</span>
-              <span className={styles.qwenTitle}>Protezione privacy in corso</span>
-            </div>
-            <div className={styles.qwenBar}>
-              <div className={styles.qwenFill} style={{ width: `${qwenProgress.total > 0 ? Math.round((qwenProgress.current / qwenProgress.total) * 100) : 0}%` }} />
-            </div>
-            <p className={styles.qwenChunk}>Blocco {qwenProgress.current}/{qwenProgress.total}</p>
-            <p className={styles.qwenNote}>Anonimizzazione in corso sul tuo dispositivo. Nessun dato esce dal telefono.</p>
-            {qwenProgress.entities > 0 && (
-              <span className={styles.entityPill}>{qwenProgress.entities} entità trovate</span>
-            )}
-          </div>
-        )}
-
-        {usedFallback && !qwenProgress && (
-          <div className={styles.fallbackWarning}>
-            <span>⚠️</span>
-            <div>
-              <p className={styles.fallbackTitle}>Anonimizzazione semplificata</p>
-              <p className={styles.fallbackText}>L'analisi avanzata non è disponibile. I dati sono comunque protetti.</p>
-            </div>
-          </div>
-        )}
-
         {/* Analyze CTA */}
         <button
           className={`btn btn--aurora btn--full ${styles.analyzeBtn}`}
@@ -364,8 +359,8 @@ export default function ChatAnalysis() {
           disabled={loading || (!rawText.trim() && !file)}
         >
           {loading
-            ? <><span className="spinner" style={{ width: 20, height: 20, borderWidth: 2.5 }} /> Analisi in corso…</>
-            : 'Analizza il messaggio'
+            ? <><span className="spinner" style={{ width: 20, height: 20, borderWidth: 2.5 }} /> Generazione report in corso…</>
+            : 'Genera Report Chat'
           }
         </button>
 
@@ -390,75 +385,130 @@ export default function ChatAnalysis() {
       </section>
 
       {/* ── Results ── */}
-      {result && (
+      {result && result.riepilogo && (
         <section
           ref={resultsRef}
           className={`${styles.results} page-enter`}
           aria-live="polite"
         >
-          <div className={styles.resultsCard}>
+          <div className={styles.thankYouMessage}>
+            Grazie per aver utilizzato l'Analisi Chat. Ecco il tuo report.
+          </div>
 
-            <div className={styles.severityRow}>
-              <SeverityIndicator level={result.gravita} size={56} />
-            </div>
-
-            <hr className="divider" />
-
-            <div className={styles.block}>
-              <span className="section-label">Tecnica rilevata</span>
-              <h2 className={styles.techniqueName}>
-                {TECHNIQUE_LABELS[result.tecnica] || result.tecnica}
-              </h2>
-            </div>
-
-            <div className={styles.block}>
-              <span className="section-label">Il vero significato</span>
-              <div className={styles.quoteBox}>
-                <p className={styles.quoteText}>{result.traduzione}</p>
-              </div>
-            </div>
-
-            <div className={styles.block}>
-              <span className="section-label">Perché è problematico</span>
-              <p className={styles.explanation}>{result.spiegazione}</p>
-            </div>
-
-            {result.risposte?.length > 0 && (
-              <div className={styles.block}>
-                <span className="section-label">Come rispondere</span>
-                <ul className={styles.responseList}>
-                  {result.risposte.map((r, i) => (
-                    <li key={i} className={styles.responseItem}>
-                      <span className={styles.responseNum}>{String(i + 1).padStart(2, '0')}</span>
-                      <span>{r}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {result.risorse && (
-              <div className={styles.resourcesBanner}>
-                <h3 className={styles.resourcesTitle}>Hai bisogno di aiuto?</h3>
-                <p className={styles.resourcesSub}>Servizi gratuiti, anonimi e riservati.</p>
-                <div className={styles.resourcesList}>
-                  {resources.map(r => (
-                    <a
-                      key={r.nome}
-                      href={r.url}
-                      className={styles.resourceItem}
-                      target={r.url.startsWith('http') ? '_blank' : undefined}
-                      rel={r.url.startsWith('http') ? 'noopener noreferrer' : undefined}
-                    >
-                      <span className={styles.resourceName}>{r.nome}</span>
-                      {r.number && <span className={styles.resourceNumber}>{r.number}</span>}
-                    </a>
-                  ))}
+          {/* Summary Card */}
+          <div className={styles.summaryCard}>
+            <div className={styles.summaryHeader}>
+              <SeverityIndicator level={Math.round(result.riepilogo.gravita_media) || 1} size={48} />
+              <div className={styles.summaryStats}>
+                <div className={styles.statBox}>
+                  <span className={styles.statValue}>{result.riepilogo.messaggi_totali}</span>
+                  <span className={styles.statLabel}>Messaggi Totali</span>
+                </div>
+                <div className={styles.statBox}>
+                  <span className={styles.statValue} style={{ color: result.riepilogo.messaggi_problematici > 0 ? 'var(--danger-deep)' : 'var(--sage-safe)' }}>
+                    {result.riepilogo.messaggi_problematici}
+                  </span>
+                  <span className={styles.statLabel}>Problematici</span>
                 </div>
               </div>
-            )}
+            </div>
 
+            <p className={styles.summaryEval}>{result.riepilogo.valutazione_complessiva}</p>
+
+            {(() => {
+              // Extract unique categories directly from the messages to ensure 100% accuracy
+              const actualCategories = result.report
+                ? [...new Set(result.report.map(m => m.categoria?.trim().toLowerCase()))].filter(c => c && c !== 'nessuna')
+                : [];
+
+              if (actualCategories.length > 0) {
+                return (
+                  <div className={styles.summaryCategories}>
+                    {actualCategories.map(c => {
+                      // Try to match the lowercase category to our labels, or fallback to capitalize
+                      const label = CATEGORY_LABELS[c] || Object.values(CATEGORY_LABELS).find(l => l.toLowerCase() === c) || c;
+                      return (
+                        <button 
+                          key={c} 
+                          className={`${styles.categoryPill} ${activeFilter === c ? styles.categoryPillActive : ''}`}
+                          onClick={() => toggleFilter(c)}
+                        >
+                          {label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )
+              }
+              return null;
+            })()}
           </div>
+
+          <span className="section-label" style={{ marginTop: 'var(--space-5)' }}>
+            {activeFilter 
+              ? `Filtrando per: ${CATEGORY_LABELS[activeFilter] || activeFilter}` 
+              : 'Dettaglio Messaggi'}
+          </span>
+
+          <div className={styles.messageList}>
+            {result.report?.filter(msg => !activeFilter || msg.categoria?.trim().toLowerCase() === activeFilter).map((msg, idx) => {
+              const categoryMatch = msg.categoria?.trim().toLowerCase();
+              const isProblematic = categoryMatch !== 'nessuna' && msg.gravita > 1;
+              const isExpanded = expandedMessages[idx] || false;
+              const shouldTruncate = msg.messaggio.length > 200;
+              const displayText = shouldTruncate && !isExpanded ? msg.messaggio.slice(0, 200) + '...' : msg.messaggio;
+
+              return (
+                <div key={idx} className={`${styles.messageItem} ${isProblematic ? styles[`messageSeverity${msg.gravita}`] : styles.messageNeutral}`}>
+                  <div className={styles.messageContent}>
+                    {msg.autore && (
+                      <div className={styles.messageAuthor}>
+                        Inviato da: <strong>{msg.autore}</strong>
+                      </div>
+                    )}
+                    <div className={styles.messageTextWrapper}>
+                      <span className={styles.messageText}>{displayText}</span>
+                      {shouldTruncate && (
+                        <button className={styles.expandBtn} onClick={() => toggleExpand(idx)}>
+                          {isExpanded ? 'Riduci' : 'Scopri di più'}
+                        </button>
+                      )}
+                    </div>
+                    {isProblematic && (
+                      <div className={styles.messageAnalysis}>
+                        <div className={styles.messageHeader}>
+                          <span className={styles.messageCategory}>{CATEGORY_LABELS[msg.categoria] || msg.categoria}</span>
+                          <span className={styles.messageSeverityBadge}>Livello {msg.gravita}</span>
+                        </div>
+                        <p className={styles.messageExplanation}>{msg.spiegazione}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {result.riepilogo.gravita_media >= 3 && (
+            <div className={styles.resourcesBanner} style={{ marginTop: 'var(--space-6)' }}>
+              <h3 className={styles.resourcesTitle}>Hai bisogno di aiuto?</h3>
+              <p className={styles.resourcesSub}>Servizi gratuiti, anonimi e riservati.</p>
+              <div className={styles.resourcesList}>
+                {resources.map(r => (
+                  <a
+                    key={r.nome}
+                    href={r.url}
+                    className={styles.resourceItem}
+                    target={r.url.startsWith('http') ? '_blank' : undefined}
+                    rel={r.url.startsWith('http') ? 'noopener noreferrer' : undefined}
+                  >
+                    <span className={styles.resourceName}>{r.nome}</span>
+                    {r.number && <span className={styles.resourceNumber}>{r.number}</span>}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
       )}
 
